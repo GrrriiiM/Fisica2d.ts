@@ -23,7 +23,7 @@ export class Mundo2d {
         this.corpos = corpos;
         this.gravidade = gravidade;
         if (paredes.length == 1) {
-            paredes =  [true, true, true, true]; 
+            paredes =  [paredes[0], paredes[0], paredes[0], paredes[0]]; 
         }
         this._adicionarParedes(paredes[0], paredes[1], paredes[2], paredes[3]);
         this._criarAreas(tamanhoArea);

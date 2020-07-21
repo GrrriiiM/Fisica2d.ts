@@ -43,8 +43,8 @@ export class Renderizacao2d {
 
     private _contatosPathD(mundo: Mundo2d, camera: Camera2d) {
         let pathDs = new Array<string>();
-        for(const par of (<any>Object).values(mundo.pares)) {
-            for(const contatos of (<Par2d>par).contatos) {
+        for(const par of (<any>Object).values(mundo.pares).filter(_ => _.colisao)) {
+            for(const contatos of (<Par2d>par).colisao.contatos) {
                 let vetor = contatos.vetor.adic(camera.ajuste);
                 pathDs.push(this._desenharQuadrado(vetor, 8));
             }

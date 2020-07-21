@@ -4,35 +4,37 @@ import { Mundo2d } from "./Mundo2d";
 import { Forma2d } from "../geometria/Forma2d";
 
 export interface ICorpo2dOpcoes{
-    estatico: boolean
+    estatico?: boolean,
+    angulo?: number
 }
 
 export class Corpo2d {
     readonly id: number;
     readonly nome: string;
-    private angulo = 0;
-    readonly torque = 0;
-    private velocidadeAngular = 0;
+    angulo = 0;
+    torque = 0;
+    velocidadeAngular = 0;
     readonly sensor = false;
     readonly estatico = false;
     readonly dormindo = false;
     readonly movimento = 0;
     readonly dormindoLimite = 60;
-    readonly densidade = 0.01;
+    readonly densidade = 0.1;
     readonly restituicao = 0;
     readonly friccao = 0.1;
     readonly friccaoEstatica = 0.5;
     readonly friccaoAr = 0.01;
     readonly despejo = 0.05;
     readonly tempoEscala = 1;
-    readonly prePosition: Vetor2d;
+    readonly prePosicao: Vetor2d;
     preAngulo: number;
     readonly area: number;
     readonly massa: number;
     readonly massaInvertida: number;
     readonly inercia: number;
+    readonly inerciaInvertida: number;
     rapidez = 0;
-    private contatosQuantidade = 0;
+    contatosQuantidade = 0;
     rapidezAngular = 0;
     readonly forca = new Vetor2d();
     readonly impulsoPosicao = new Vetor2d();
@@ -49,29 +51,34 @@ export class Corpo2d {
         this.nome = this.nome || `corpo${this.id}`;
         for(const parte of this.partes) {
             parte.definir(this);
+            parte.vertices.subV(this.posicao).rotV(this.angulo).adicV(this.posicao);
+            parte.eixos.rot(this.angulo);
+            parte.posicao.sub(this.posicao).rot(this.angulo).adic(this.posicao);
         }
         this.area = this.partes.reduce((a,c) => a+=c.area, 0);
         if (!this.estatico) {
             this.massa = this.area * this.densidade;
             this.massaInvertida = 1/this.massa;
             this.inercia = (this.massa / 6) * this.partes.reduce((a,c) => a+=c.inercia, 0);
+            this.inerciaInvertida = 1/this.inercia;
         } else {
             this.massa = Number.POSITIVE_INFINITY;
             this.massaInvertida = 0;
             this.inercia = Number.POSITIVE_INFINITY;
+            this.inerciaInvertida = 0;
         }
-        this.prePosition = this.posicao;
+        this.prePosicao = this.posicao.copia;
         this.preAngulo = this.angulo;
     }
 
     atualizar(delta: number, tempoEscala: number, correcao: number) {
-        const deltaQuadrado = Math.pow(delta * tempoEscala * this.tempoEscala, 2);
+        const deltaQuadrado = 1;Math.pow(delta * tempoEscala * this.tempoEscala, 2);
 
         const friccaoAr = 1 - this.friccaoAr * tempoEscala * this.tempoEscala;
-        const preVelocidade = this.posicao.sub(this.prePosition);
+        const preVelocidade = this.posicao.sub(this.prePosicao);
 
-        this.velocidade.set(preVelocidade.mult(friccaoAr*correcao).adic(this.forca.div(this.massa*deltaQuadrado)));
-        this.prePosition.set(this.posicao);
+        this.velocidade.set(preVelocidade.mult(friccaoAr*correcao).adic(this.forca.div(this.massa).mult(deltaQuadrado)));
+        this.prePosicao.set(this.posicao);
         this.posicao.adicV(this.velocidade);
 
         this.velocidadeAngular = ((this.angulo - this.preAngulo) * friccaoAr * correcao) + (this.torque/this.inercia) * deltaQuadrado
@@ -96,6 +103,34 @@ export class Corpo2d {
 
     adicionarForca(forca: Vetor2d) {
         this.forca.adicV(forca);
+    }
+
+    ajustarColisao() {
+        this.contatosQuantidade = 0
+
+        if (this.impulsoPosicao.x !== 0 || this.impulsoPosicao.y !== 0) {
+
+            for (const parte of this.partes) {
+                parte.vertices.adicV(this.impulsoPosicao); 
+                parte.posicao.adic(this.impulsoPosicao);
+                parte.bordas.set(parte.vertices);
+            }
+
+            this.posicao.adicV(this.impulsoPosicao);
+            this.prePosicao.adicV(this.impulsoPosicao);
+            
+            if (this.impulsoPosicao.dot(this.velocidade) < 0) {
+                this.impulsoPosicao.set(0, 0);
+            } else {
+                this.impulsoPosicao.mult(0.8);
+            }
+        }
+    }
+
+    resetar() {
+        this.contatosQuantidade = 0;
+        this.forca.set(0, 0);
+        this.torque = 0;
     }
 }
 

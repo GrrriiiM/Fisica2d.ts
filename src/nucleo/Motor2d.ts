@@ -16,7 +16,7 @@ export class Motor2d {
         correcao = correcao || 1;
         const corpos = this.mundo.corpos;
         const areas = this.mundo.areas;
-        const pares = this.mundo.pares;
+        const pares = (<any>Object).values(this.mundo.pares);
 
 
         this._aplicarGravidade(corpos);
@@ -25,9 +25,19 @@ export class Motor2d {
 
         this._atualizarAreas(corpos, areas);
 
-        this._atualizarPares(areas, pares);
+        this._atualizarPares(areas, this.mundo.pares);
 
-        this._detectarColisoes((<any>Object).values(pares));
+        this._detectarColisoes(pares);
+
+        this._resolverPosicao(pares, this.tempoEscala);
+
+        this._resolverImpulso(corpos);
+
+        this._prepararResolucaoColisao(pares);
+
+        this._resolverColisao(pares, this.tempoEscala);
+
+        this._resetar(corpos);
     }
 
     private _aplicarGravidade(corpos: Array<Corpo2d>) {
@@ -82,5 +92,36 @@ export class Motor2d {
         }
     }
 
+    private _resolverPosicao(pares: Par2d[], tempoEscala: number) {
+        for(let i=0;i<6;i++) {
+            for(const par of pares) {
+                par.resolverPosicao(tempoEscala);
+            }
+        }
+    }
+
+    private _resolverImpulso(corpos: Corpo2d[]) {
+        for(const corpo of corpos) {
+            corpo.ajustarColisao();
+        }
+    }
+
+    private _prepararResolucaoColisao(pares: Par2d[]) {
+        for(const par of pares) {
+            par.prepararResolucaoColisao();
+        }
+    }
+
+    private _resolverColisao(pares: Par2d[], tempoEscala: number) {
+        for(let i=0;i<4;i++) {
+            for(const par of pares) {
+                par.resolverColisao(tempoEscala);
+            }
+        }
+    }
+
+    private _resetar(corpos: Corpo2d[]) {
+        corpos.forEach(_ => _.resetar());
+    }
     
 }

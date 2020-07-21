@@ -5,6 +5,10 @@ import { Bordas2d } from "./Bordas2d";
 import { Vetor2d } from "./Vetor2d";
 import { Corpo2d } from "../objetos/Corpo2d";
 
+export interface IForma2dOpcoes{
+    
+}
+
 export class Forma2d {
     id: number;
     readonly nome: string;
@@ -20,7 +24,9 @@ export class Forma2d {
     constructor(
         posicao: Vetor2d,
         vetores: Vetor2d[],
+        opcoes?: IForma2dOpcoes
     ) {
+        (<any>Object).assign(this, opcoes);
         this.id = this.id || Mundo2d.obterProximoFormaId();
         this.nome = this.nome || `forma${this.id}`;
         this.posicao = posicao;

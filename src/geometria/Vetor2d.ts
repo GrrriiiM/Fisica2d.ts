@@ -6,13 +6,13 @@ export class Vetor2d {
 
     set(x: number, y: number): Vetor2d;
     set(vetor: Vetor2d): Vetor2d;
-    set(): Vetor2d {
-        if (arguments.length == 1) {
-            this.x = arguments[0].x;
-            this.y = arguments[0].y;
+    set(arg1?:any, arg2?:any): Vetor2d {
+        if (arg1 instanceof Vetor2d) {
+            this.x = arg1.x;
+            this.y = arg1.y;
         } else {
-            this.x = arguments[0];
-            this.y = arguments[1];
+            this.x = arg1;
+            this.y = arg2;
         }
         return this;
     }
