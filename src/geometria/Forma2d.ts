@@ -18,7 +18,6 @@ export class Forma2d {
     corpo: Corpo2d;
     readonly eixos: Eixos2d;
     readonly area: number;
-    readonly inercia: number;
     private ultimoVerticeId = 0;
     
     constructor(
@@ -29,12 +28,11 @@ export class Forma2d {
         (<any>Object).assign(this, opcoes);
         this.id = this.id || Mundo2d.obterProximoFormaId();
         this.nome = this.nome || `forma${this.id}`;
-        this.posicao = posicao;
+        this.posicao = posicao.copia;
         this.vertices = new Vertices2d(this, vetores);
         this.eixos = new Eixos2d(this.vertices);
         this.bordas = new Bordas2d(this.vertices);
         this.area = this._calcularArea();
-        this.inercia = this._calcularInercia();
         this._centralizar();
     }
 
@@ -56,18 +54,20 @@ export class Forma2d {
         return Math.abs(area) / 2;
     }
 
-    private _calcularInercia() {
+    public calcularInercia(densidade: number) {
         let numerator = 0;
         let denominator = 0;
 
         for(const vertice of this.vertices) {
             const verticeProximo = this.vertices.proximo(vertice);
-            const cross = Math.abs(verticeProximo.cross(vertice));
-            numerator += cross * (verticeProximo.dot(verticeProximo) + verticeProximo.dot(vertice) + vertice.dot(vertice));
+            const v1 = vertice.sub(this.posicao);
+            const v2 = verticeProximo.sub(this.posicao);
+            const cross = Math.abs(v2.cross(v1));
+            numerator += cross * (v2.dot(v2) + v2.dot(v1) + v1.dot(v1));
             denominator += cross;
         }
 
-        return (numerator / denominator);
+        return ((this.area * densidade) / 6) * (numerator / denominator);
     }
 
     private _transformarConvexo(vetores: Array<Vetor2d>): Array<Vetor2d> {

@@ -25,7 +25,7 @@ export class Sat2d {
             colisao = new Colisao2d(formaA, formaB);
         }
 
-        if (colisaoAnterior && reaproveitarColisao) {
+        if (reaproveitarColisao) {
             const formaEixoA = colisao.eixoForma;
             const formaEixoB = formaEixoA == formaA ? formaB : formaA;
             const eixo = formaEixoA.eixos[colisao.eixoIndice];
@@ -35,6 +35,9 @@ export class Sat2d {
             if (eixoSobreposicao.sobreposicao <= 0) {
                 return null;
             }
+            
+            colisao.sobreposicao = eixoSobreposicao.sobreposicao;
+
         } else {
             const eixoSobreposicaoAB = this._eixoSobrepoem(formaA.vertices, formaB.vertices, formaA.eixos);
 
@@ -48,7 +51,6 @@ export class Sat2d {
                 return null;
             }
 
-            let sobreposicao: number;
             if (eixoSobreposicaoAB.sobreposicao < eixoSobreposicaoBA.sobreposicao) {
                 colisao.sobreposicao = eixoSobreposicaoAB.sobreposicao;
                 colisao.eixoForma = formaA;
@@ -63,7 +65,7 @@ export class Sat2d {
 
 
         let eixo = colisao.eixoForma.eixos[colisao.eixoIndice];
-        // ensure normal is facing away from bodyA
+        
         if (eixo.dot(corpoB.posicao.sub(corpoA.posicao)) < 0) {
             colisao.norma = eixo.copia;
         } else {
@@ -74,30 +76,42 @@ export class Sat2d {
 
         colisao.penetracao = colisao.norma.mult(colisao.sobreposicao);; 
 
-        const contatos = new Array<Contato2d>();
+        const contatos = new Array<Vertice2d>();
 
         var contatoB = this._encontrarContatos(formaA, formaB, colisao.norma);
 
         if (formaA.vertices.contem(contatoB[0]))
-            contatos.push(new Contato2d(contatoB[0]));
+            contatos.push(contatoB[0]);
 
         if (formaA.vertices.contem(contatoB[1]))
-            contatos.push(new Contato2d(contatoB[1]));
+            contatos.push(contatoB[1]);
 
         if (contatos.length < 2) {
             var contatosA = this._encontrarContatos(formaB, formaA, colisao.norma.inv());
                 
             if (formaB.vertices.contem(contatosA[0]))
-                contatos.push(new Contato2d(contatosA[0]));
+                contatos.push(contatosA[0]);
 
             if (contatos.length < 2 && formaB.vertices.contem(contatosA[1]))
-                contatos.push(new Contato2d(contatosA[1]));
+                contatos.push(contatosA[1]);
         }
 
         if (contatos.length < 1)
-            contatos.push(new Contato2d(contatoB[0]));
+            contatos.push(contatoB[0]);
         
-        colisao.contatos = contatos;
+        const contatosAnteriores = colisao.contatos.splice(0);
+        for(const contato of contatos) {
+            let contatoAnterior = contatosAnteriores.find(_ => _.id == contato.id)
+            let novoContato = new Contato2d(contato);
+            if (contatoAnterior) {
+                novoContato.impulsoNorma = contatoAnterior.impulsoNorma;
+                novoContato.impulsoTangente = contatoAnterior.impulsoTangente;
+            }
+
+            colisao.contatos.push(novoContato);
+        }
+
+        
 
         return colisao;
     }
@@ -124,7 +138,7 @@ export class Sat2d {
         return resultado;
     }
 
-    static _encontrarContatos(formaA: Forma2d, formaB: Forma2d, norma: Vetor2d): Vetor2d[] {
+    static _encontrarContatos(formaA: Forma2d, formaB: Forma2d, norma: Vetor2d): Vertice2d[] {
         let menorDistancia = Number.MAX_VALUE;
         let vertices = formaB.vertices;
         let posicao = formaA.posicao;
@@ -153,13 +167,14 @@ export class Sat2d {
 
     static _projetarEixo(vertices: Vetor2d[], eixo: Eixo2d): { min: number, max: number } {
         let min = Number.MAX_VALUE;
-        let max = Number.MIN_VALUE;
+        let max = -Number.MAX_VALUE;
 
         for(const vertice of vertices) {
             const dot = vertice.dot(eixo);
             if (dot > max) { 
                 max = dot; 
-            } else if (dot < min) { 
+            }
+            if (dot < min) { 
                 min = dot; 
             }
         }

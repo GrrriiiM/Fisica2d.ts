@@ -6,12 +6,33 @@ import { Vetor2d } from "../geometria/Vetor2d";
 
 export class Renderizacao2d {
     formas: string;
+    bordas: string;
+    eixos: string;
     areas: string;
     contatos: string;
+    velocidades: string;
     constructor(mundo: Mundo2d, camera: Camera2d) {
         this.formas = this._formasPathD(mundo, camera);
         this.areas = this._areasPathD(mundo, camera);
         this.contatos = this._contatosPathD(mundo, camera);
+        this.bordas = this._bordasPathD(mundo, camera);
+        this.eixos = this._eixosPathD(mundo, camera);
+        this.velocidades = this._velocidadesPathD(mundo, camera);
+    }
+
+    private _bordasPathD(mundo: Mundo2d, camera: Camera2d): string {
+        let pathDs = new Array<string>();
+        for(const corpo of mundo.corpos) {
+            for(const forma of corpo.partes) {
+                if (forma.bordas.sobrepoem(camera.bordas)) {
+                    const min = forma.bordas.min.adic(camera.ajuste);
+                    const max = forma.bordas.max.adic(camera.ajuste);
+                    pathDs.push(`M${min.x},${min.y}L${max.x},${min.y}L${max.x},${max.y}L${min.x},${max.y}Z`);
+                }
+            }
+        }
+       
+        return pathDs.join(" ");
     }
 
     private _formasPathD(mundo: Mundo2d, camera: Camera2d): string {
@@ -21,6 +42,21 @@ export class Renderizacao2d {
                 if (forma.bordas.sobrepoem(camera.bordas)) {
                     const vertices = forma.vertices.adic(camera.ajuste);
                     pathDs.push(`${vertices.reduce((a,c, i) => a+=`${i==0?"M":"L"}${c.x},${c.y}`, "")}Z`);
+                }
+            }
+        }
+       
+        return pathDs.join(" ");
+    }
+
+    private _eixosPathD(mundo: Mundo2d, camera: Camera2d): string {
+        let pathDs = new Array<string>();
+        for(const corpo of mundo.corpos) {
+            for(const forma of corpo.partes) {
+                if (forma.bordas.sobrepoem(camera.bordas)) {
+                    let eixos = new Array<Vetor2d>();
+                    forma.eixos.forEach(_ => eixos.push(_.mult(10).adic(camera.ajuste).adic(forma.posicao)));
+                    pathDs.push(`${eixos.reduce((a,c,i) => `${a}M${forma.posicao.x},${forma.posicao.y}L${c.x},${c.y}`, "")}`);
                 }
             }
         }
@@ -45,13 +81,27 @@ export class Renderizacao2d {
         let pathDs = new Array<string>();
         for(const par of (<any>Object).values(mundo.pares).filter(_ => _.colisao)) {
             for(const contatos of (<Par2d>par).colisao.contatos) {
-                let vetor = contatos.vetor.adic(camera.ajuste);
+                let vetor = contatos.adic(camera.ajuste);
                 pathDs.push(this._desenharQuadrado(vetor, 8));
             }
         }
 
         return pathDs.join(" ");
     }
+
+
+    private _velocidadesPathD(mundo: Mundo2d, camera: Camera2d) {
+        let pathDs = new Array<string>();
+        for(const corpo of mundo.corpos) {
+            if (camera.bordas.contem(corpo.posicao)) {
+                const velocidade = corpo.velocidade.mult(10).inv().adic(corpo.posicao);
+                pathDs.push(`M${corpo.posicao.x},${corpo.posicao.y}L${velocidade.x},${velocidade.y}`);
+            }
+        }
+
+        return pathDs.join(" ");
+    }
+
 
     private _desenharQuadrado(vetor:Vetor2d, tamanho: number): string {
         return `M${vetor.x-tamanho/2},${vetor.y-tamanho/2}L${vetor.x+tamanho/2},${vetor.y-tamanho/2}L${vetor.x+tamanho/2},${vetor.y+tamanho/2}L${vetor.x-tamanho/2},${vetor.y+tamanho/2}Z`

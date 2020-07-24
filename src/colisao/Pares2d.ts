@@ -45,28 +45,35 @@ export class Par2d {
         }
     }
 
-    resolverPosicao(tempoEscala: number) {   
-        if (this.colisao) {
-            const colisao = this.colisao;
-            const corpoA = this.colisao.corpoA;
-            const corpoB = this.colisao.corpoB;
-            const norma = this.colisao.norma;
-            
-            this.separacao = norma.dot(corpoB.impulsoPosicao.adic(corpoB.posicao).sub(corpoA.impulsoPosicao.adic(corpoB.posicao.sub(colisao.penetracao))));
+    resolverSeparacao() {
+        if (!this.colisao) return;
+        const colisao = this.colisao;
+        const corpoA = this.colisao.corpoA;
+        const corpoB = this.colisao.corpoB;
+        const norma = this.colisao.norma;
         
-            let impulso = (this.separacao - this.despejo) * tempoEscala;
-            
-            
-            if (corpoA.estatico || corpoB.estatico)
-                impulso *= 2;
-            
-            if (!corpoA.estatico) {
-                corpoA.impulsoPosicao.adicV(norma.mult(impulso * (0.9 / corpoA.contatosQuantidade)));
-            }
+        this.separacao = norma.dot(corpoB.impulsoPosicao.adic(corpoB.posicao).sub(corpoA.impulsoPosicao.adic(corpoB.posicao.sub(colisao.penetracao))));
+        
+    }
 
-            if (!corpoB.estatico) {
-                corpoB.impulsoPosicao.subV(norma.mult(impulso * (0.9 / corpoB.contatosQuantidade)));
-            }
+    resolverPosicao(tempoEscala: number) {   
+        if (!this.colisao) return;
+        const corpoA = this.colisao.corpoA;
+        const corpoB = this.colisao.corpoB;
+        const norma = this.colisao.norma;
+        
+        let impulso = (this.separacao - this.despejo) * tempoEscala;
+        
+        
+        if (corpoA.estatico || corpoB.estatico)
+            impulso *= 2;
+        
+        if (!corpoA.estatico) {
+            corpoA.impulsoPosicao.adicV(norma.mult(impulso * (0.9 / corpoA.contatosQuantidade)));
+        }
+
+        if (!corpoB.estatico) {
+            corpoB.impulsoPosicao.subV(norma.mult(impulso * (0.9 / corpoB.contatosQuantidade)));
         }
     }
 
@@ -79,20 +86,19 @@ export class Par2d {
         const norma = colisao.norma;
         const tangente = colisao.tangente;    
         for(const contato of contatos) {
-            const vetor = contato.vetor;
+            const vetor = contato;
             const impulsoNorma = contato.impulsoNorma;
             const impulsoTangente = contato.impulsoTangente;
             if (impulsoNorma != 0 || impulsoTangente != 0) {
                 const impulso = norma.mult(impulsoNorma).adic(tangente.mult(impulsoTangente));
                 if (!corpoA.estatico) {
-                    vetor.sub(corpoA.posicao);
                     corpoA.prePosicao.adicV(impulso.mult(corpoA.massaInvertida));
                     corpoA.preAngulo += vetor.sub(corpoA.posicao).cross(impulso) * corpoA.inerciaInvertida;
                 }
                 if (!corpoB.estatico) {
                     vetor.sub(corpoB.posicao);
-                    corpoB.prePosicao.adicV(impulso.mult(corpoB.massaInvertida));
-                    corpoB.preAngulo += vetor.sub(corpoB.posicao).cross(impulso) * corpoB.inerciaInvertida;
+                    corpoB.prePosicao.subV(impulso.mult(corpoB.massaInvertida));
+                    corpoB.preAngulo -= vetor.sub(corpoB.posicao).cross(impulso) * corpoB.inerciaInvertida;
                 }
             }
         }
@@ -117,11 +123,11 @@ export class Par2d {
         corpoB.velocidadeAngular = corpoB.angulo - corpoB.preAngulo;
 
         for(const contato of contatos) {
-            const vetor = contato.vetor;
+            const vetor = contato;
             const offsetA = vetor.sub(corpoA.posicao);
             const offsetB = vetor.sub(corpoB.posicao);
             const velocidadePontoA = corpoA.velocidade.adic(offsetA.perp().mult(corpoA.velocidadeAngular));
-            const velocidadePontoB = corpoB.velocidade.adic(offsetA.perp().mult(corpoB.velocidadeAngular));
+            const velocidadePontoB = corpoB.velocidade.adic(offsetB.perp().mult(corpoB.velocidadeAngular));
             const velocidadeRelativa = velocidadePontoA.sub(velocidadePontoB);
             const velocidadeNorma = norma.dot(velocidadeRelativa);
             const velocidadeTangente = tangente.dot(velocidadeRelativa);
@@ -166,7 +172,7 @@ export class Par2d {
 
             if (!corpoA.estatico) {
                 corpoA.prePosicao.adicV(impulso.mult(corpoA.massaInvertida))
-                //corpoA.preAngulo += offsetA.cross(impulso) * corpoA.inerciaInvertida;
+                corpoA.preAngulo += offsetA.cross(impulso) * corpoA.inerciaInvertida;
             }
 
             if (!corpoB.estatico) {

@@ -7,6 +7,7 @@ import { Par2d } from "../colisao/Pares2d";
 export class Mundo2d {
     readonly corpos: Corpo2d[];
     readonly gravidade: Vetor2d;
+    readonly gravidadeEscala = 0.001;
     readonly areas = new Array<Area2d>();
     readonly pares: { [id:string]: Par2d } = {}
 

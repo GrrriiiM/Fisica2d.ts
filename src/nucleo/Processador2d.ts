@@ -9,8 +9,8 @@ export class Processador2d implements IProcessador2d {
     ) {}
 
 
-    requisitarFrame(tempo: number, camera: Camera2d): Renderizacao2d {
-        this.motor.executar(tempo, 1);
+    requisitarFrame(tempo: number, camera: Camera2d, frameId: number): Renderizacao2d {
+        this.motor.executar(tempo, 1, frameId);
         return new Renderizacao2d(this.motor.mundo, camera);
     }
 

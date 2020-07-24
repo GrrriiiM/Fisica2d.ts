@@ -5,7 +5,12 @@ import { Forma2d } from "../geometria/Forma2d";
 
 export interface ICorpo2dOpcoes{
     estatico?: boolean,
-    angulo?: number
+    angulo?: number,
+    restituicao?: number,
+    densidade?: number,
+    despejo?: number,
+    friccao?: number,
+    friccaoEstatica?: number
 }
 
 export class Corpo2d {
@@ -19,7 +24,7 @@ export class Corpo2d {
     readonly dormindo = false;
     readonly movimento = 0;
     readonly dormindoLimite = 60;
-    readonly densidade = 0.1;
+    readonly densidade = 0.001;
     readonly restituicao = 0;
     readonly friccao = 0.1;
     readonly friccaoEstatica = 0.5;
@@ -46,20 +51,22 @@ export class Corpo2d {
         readonly partes: Forma2d[],
         opcoes?: ICorpo2dOpcoes
     ) {
+        this.posicao = posicao.copia;
         (<any>Object).assign(this, opcoes);
+        
         this.id = Mundo2d.obterProximoCorpoId();
         this.nome = this.nome || `corpo${this.id}`;
         for(const parte of this.partes) {
             parte.definir(this);
             parte.vertices.subV(this.posicao).rotV(this.angulo).adicV(this.posicao);
             parte.eixos.rot(this.angulo);
-            parte.posicao.sub(this.posicao).rot(this.angulo).adic(this.posicao);
+            parte.posicao.subV(this.posicao).rotV(this.angulo).adicV(this.posicao);
         }
         this.area = this.partes.reduce((a,c) => a+=c.area, 0);
         if (!this.estatico) {
             this.massa = this.area * this.densidade;
             this.massaInvertida = 1/this.massa;
-            this.inercia = (this.massa / 6) * this.partes.reduce((a,c) => a+=c.inercia, 0);
+            this.inercia = this.partes.reduce((a, c) => a+=c.calcularInercia(this.densidade)*4, 0);
             this.inerciaInvertida = 1/this.inercia;
         } else {
             this.massa = Number.POSITIVE_INFINITY;
@@ -72,7 +79,7 @@ export class Corpo2d {
     }
 
     atualizar(delta: number, tempoEscala: number, correcao: number) {
-        const deltaQuadrado = 1;Math.pow(delta * tempoEscala * this.tempoEscala, 2);
+        const deltaQuadrado = Math.pow(delta * tempoEscala * this.tempoEscala, 2);
 
         const friccaoAr = 1 - this.friccaoAr * tempoEscala * this.tempoEscala;
         const preVelocidade = this.posicao.sub(this.prePosicao);
@@ -90,12 +97,12 @@ export class Corpo2d {
 
         for (const parte of this.partes) {
             parte.vertices.adicV(this.velocidade); 
-            parte.posicao.adic(this.velocidade);
+            parte.posicao.adicV(this.velocidade);
 
             if (this.velocidadeAngular !== 0) {
                 parte.vertices.subV(this.posicao).rotV(this.velocidadeAngular).adicV(this.posicao);
                 parte.eixos.rot(this.velocidadeAngular);
-                parte.posicao.sub(this.posicao).rot(this.velocidadeAngular).adic(this.posicao);
+                parte.posicao.subV(this.posicao).rotV(this.velocidadeAngular).adicV(this.posicao);
             }
             parte.bordas.set(parte.vertices);
         }
@@ -112,7 +119,7 @@ export class Corpo2d {
 
             for (const parte of this.partes) {
                 parte.vertices.adicV(this.impulsoPosicao); 
-                parte.posicao.adic(this.impulsoPosicao);
+                parte.posicao.adicV(this.impulsoPosicao);
                 parte.bordas.set(parte.vertices);
             }
 
@@ -128,7 +135,6 @@ export class Corpo2d {
     }
 
     resetar() {
-        this.contatosQuantidade = 0;
         this.forca.set(0, 0);
         this.torque = 0;
     }

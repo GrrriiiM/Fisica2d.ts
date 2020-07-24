@@ -51,7 +51,7 @@ export class Canvas2d {
         this.tempoFrame = tempo - this.tempoTotal;
         this.tempoTotal = tempo;
         if (this.executando) {
-            this.renderizar(this.processador.requisitarFrame(this.tempoFrame, this.camera));
+            this.renderizar(this.processador.requisitarFrame(this.tempoFrame, this.camera, this.frameId));
             this.frameId = this.requisitarFrame(this.executar.bind(this));
         }
     }
@@ -62,14 +62,27 @@ export class Canvas2d {
 
     renderizar(renderizacao: Renderizacao2d) {
         this.renderizarFundo();
+        this.renderizarBordas(renderizacao.bordas);
+        this.renderizarEixos(renderizacao.eixos);
         this.renderizarAreas(renderizacao.areas);
         this.renderizarFormas(renderizacao.formas);
         this.renderizarContatos(renderizacao.contatos);
+        this.renderizarVelocidades(renderizacao.velocidades);
     }
 
     renderizarFundo() {
         this._context.fillStyle = "black";
         this._context.fill(new Path2D(`M0 0 L${this.largura} 0 L${this.largura} ${this.altura} L0 ${this.altura}`));
+    }
+
+    renderizarBordas(pathD: string) {
+        this._context.strokeStyle = "green";
+        this._context.stroke(new Path2D(pathD));
+    }
+
+    renderizarEixos(pathD: string) {
+        this._context.strokeStyle = "purple";
+        this._context.stroke(new Path2D(pathD));
     }
 
     renderizarFormas(pathD: string) {
@@ -85,8 +98,13 @@ export class Canvas2d {
     }
 
     renderizarContatos(pathD: string) {
-        this._context.fillStyle = "green";
+        this._context.fillStyle = "lime";
         this._context.fill(new Path2D(pathD));
+    }
+
+    renderizarVelocidades(pathD: string) {
+        this._context.strokeStyle = "blue";
+        this._context.stroke(new Path2D(pathD));
     }
 
 

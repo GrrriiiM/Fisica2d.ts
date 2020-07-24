@@ -11,13 +11,14 @@ export class Motor2d {
         readonly mundo: Mundo2d
     ) {}
 
-    executar(delta: number, correcao: number) {
+    executar(delta: number, correcao: number, frameId: number) {
         delta = delta || 1000/60;
         correcao = correcao || 1;
         const corpos = this.mundo.corpos;
         const areas = this.mundo.areas;
         const pares = (<any>Object).values(this.mundo.pares);
-
+        
+        if (delta>33.33) delta = 33.33;
 
         this._aplicarGravidade(corpos);
 
@@ -43,14 +44,15 @@ export class Motor2d {
     private _aplicarGravidade(corpos: Array<Corpo2d>) {
         for(let corpo of corpos) {
             if (!corpo.estatico) {
-                corpo.adicionarForca(this.mundo.gravidade.mult(corpo.massa));
+                corpo.adicionarForca(this.mundo.gravidade.mult(corpo.massa*this.mundo.gravidadeEscala));
             }
         }
     }
 
     private _atualizarCorpos(corpos: Array<Corpo2d>, delta: number, correcao: number) {
         for(let corpo of corpos) {
-            corpo.atualizar(delta, this.tempoEscala, correcao);
+            if (!corpo.estatico)
+                corpo.atualizar(delta, this.tempoEscala, correcao);
         }
     }
 
@@ -94,6 +96,9 @@ export class Motor2d {
 
     private _resolverPosicao(pares: Par2d[], tempoEscala: number) {
         for(let i=0;i<6;i++) {
+            for(const par of pares) {
+                par.resolverSeparacao();
+            }
             for(const par of pares) {
                 par.resolverPosicao(tempoEscala);
             }

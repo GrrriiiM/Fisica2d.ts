@@ -63,15 +63,6 @@ export class Vertices2d extends Array<Vertice2d> {
     }
 
     contem(ponto: Vetor2d): boolean {
-        // for(const vertice of this) {
-        //     const proximoVertice = this.proximo(vertice);
-        //     if ((ponto.x - vertice.x) * (proximoVertice.y - vertice.y) + (ponto.y - vertice.y) * (vertice.x - proximoVertice.x) > 0) {
-        //         return false;
-        //     }
-        // }
-        // return true;
-
-
         var x = ponto.x; 
         var y = ponto.y;
 

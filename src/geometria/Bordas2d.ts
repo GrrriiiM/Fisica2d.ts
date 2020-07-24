@@ -20,8 +20,8 @@ export class Bordas2d {
             let vertices = arguments[0] as Vertices2d;
             let minX = Number.MAX_VALUE;
             let minY = Number.MAX_VALUE;
-            let maxX = Number.MIN_VALUE;
-            let maxY = Number.MIN_VALUE;
+            let maxX = -Number.MAX_VALUE;
+            let maxY = -Number.MAX_VALUE;
             for(let vertice of vertices) {
                 if (vertice.x < minX) minX = vertice.x;
                 if (vertice.y < minY) minY = vertice.y;
@@ -56,6 +56,33 @@ export class Bordas2d {
             new Vetor2d(this.max.x, this.max.y),
             new Vetor2d(this.min.x, this.max.y)
         ];
+    }
+
+    contem(ponto: Vetor2d): boolean {
+        var x = ponto.x; 
+        var y = ponto.y;
+
+        let vetores:any[] = [
+            { x: this.min.x, y: this.min.y },
+            { x: this.max.x, y: this.min.y },
+            { x: this.max.x, y: this.max.y },
+            { x: this.min.x, y: this.max.y }
+        ];
+
+
+
+        var inside = false;
+        for (var i = 0, j = vetores.length - 1; i < vetores.length; j = i++) {
+            var xi = vetores[i].x, yi = vetores[i].y;
+            var xj = vetores[j].x, yj = vetores[j].y;
+    
+            var intersect = ((yi > y) != (yj > y))
+                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+    
+        return inside;
+
     }
 
 }

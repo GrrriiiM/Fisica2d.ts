@@ -13,7 +13,7 @@ export class Colisao2d {
     tangente: Vetor2d;
     sobreposicao: number;
     penetracao: Vetor2d;
-    contatos: Contato2d[];
+    contatos = new Array<Contato2d>();
     constructor(
         readonly formaA: Forma2d,
         readonly formaB: Forma2d
