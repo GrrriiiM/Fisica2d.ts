@@ -104,15 +104,23 @@ export class Canvas2d {
     }
     renderizarFps(fps) {
         let fpsText = `fps: ${Math.round(fps)}`;
-        this._context.font = "18px Arial";
-        this._context.fillStyle = "#FFFFFF";
+        this._context.font = "18px Consolas";
         let fpsMeasureText = this._context.measureText(fpsText).width;
-        this._context.fillText(fpsText, this.largura - fpsMeasureText, this.altura - 10);
+        this._context.fillStyle = "blue";
+        this._context.globalAlpha = 0.5;
+        let posicaoX = this.largura - fpsMeasureText - 20;
+        let posicaoY = this.altura - 10;
+        let largura = fpsMeasureText + 10;
+        let altura = 20;
+        this._context.fill(new Path2D(`M${posicaoX},${posicaoY},L${posicaoX + largura},${posicaoY}L${posicaoX + largura},${posicaoY - altura}L${posicaoX},${posicaoY - altura}`));
+        this._context.globalAlpha = 1;
+        this._context.fillStyle = "#FFFFFF";
+        this._context.fillText(fpsText, this.largura - fpsMeasureText - 15, this.altura - 15);
     }
     renderizarLog(logs) {
         if (logs && logs.length) {
             this._context.fillStyle = "blue";
-            this._context.globalAlpha = 0.4;
+            this._context.globalAlpha = 0.5;
             let altura = 15 + (logs.length * 12);
             let largura = 250;
             this._context.fill(new Path2D(`M10,10,L${largura},10L${largura},${altura}L10,${altura}`));
@@ -122,7 +130,7 @@ export class Canvas2d {
             this._context.fillStyle = "#FFFFFF";
             for (const log of logs) {
                 this._context.fillText(log, 15, 22 + altura);
-                altura += 10;
+                altura += 11;
             }
         }
     }
