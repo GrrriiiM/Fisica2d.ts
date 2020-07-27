@@ -1,11 +1,11 @@
-import { Vetor2d } from "./Vetor2d";
+import { Vetor2d, IReadOnlyVetor2d } from "./Vetor2d";
 import { Forma2d } from "./Forma2d";
 import { Mundo2d } from "../objetos/Mundo2d";
 
 export class Vertice2d extends Vetor2d {
     id: number;
     constructor(
-        v: Vetor2d,
+        v: IReadOnlyVetor2d,
         id?: number
     ) {
         super(v.x, v.y);
@@ -15,29 +15,29 @@ export class Vertice2d extends Vetor2d {
 
 export class Vertices2d extends Array<Vertice2d> {
     
-    constructor(forma: Forma2d, vetores: Array<Vetor2d>) {
+    constructor(forma: Forma2d, vetores: Array<IReadOnlyVetor2d>) {
         super();
         vetores.forEach(_ => this.push(new Vertice2d(_)));
     }
 
-    adicV(vetor: Vetor2d): Vertices2d {
+    adicV(vetor: IReadOnlyVetor2d): Vertices2d {
         this.forEach(_ => _.adicV(vetor));
         return this;
     }
 
-    adic(vetor: Vetor2d): Vetor2d[] {
-        let vetores = new Array<Vetor2d>();
+    adic(vetor: IReadOnlyVetor2d): IReadOnlyVetor2d[] {
+        let vetores = new Array<IReadOnlyVetor2d>();
         this.forEach(_ => vetores.push(_.adic(vetor)));
         return vetores;
     } 
 
-    subV(vetor: Vetor2d): Vertices2d {
+    subV(vetor: IReadOnlyVetor2d): Vertices2d {
         this.forEach(_ => _.subV(vetor));
         return this;
     }
 
-    sub(vetor: Vetor2d): Vetor2d[] {
-        let vetores = new Array<Vetor2d>();
+    sub(vetor: IReadOnlyVetor2d): IReadOnlyVetor2d[] {
+        let vetores = new Array<IReadOnlyVetor2d>();
         this.forEach(_ => vetores.push(_.sub(vetor)));
         return vetores;
     }
@@ -47,8 +47,8 @@ export class Vertices2d extends Array<Vertice2d> {
         return this;
     }
 
-    rot(rad: number): Vetor2d[] {
-        let vetores = new Array<Vetor2d>();
+    rot(rad: number): IReadOnlyVetor2d[] {
+        let vetores = new Array<IReadOnlyVetor2d>();
         this.forEach(_ => vetores.push(_.rot(rad)));
         return vetores;
     }

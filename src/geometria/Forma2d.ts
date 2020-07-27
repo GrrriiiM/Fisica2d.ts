@@ -2,7 +2,7 @@ import { Mundo2d } from "../objetos/Mundo2d";
 import { Vertices2d } from "./Vertices2d";
 import { Eixos2d } from "./Eixos2d";
 import { Bordas2d } from "./Bordas2d";
-import { Vetor2d } from "./Vetor2d";
+import { Vetor2d, IReadOnlyVetor2d } from "./Vetor2d";
 import { Corpo2d } from "../objetos/Corpo2d";
 
 export interface IForma2dOpcoes{
@@ -12,7 +12,8 @@ export interface IForma2dOpcoes{
 export class Forma2d {
     id: number;
     readonly nome: string;
-    readonly posicao: Vetor2d;
+    readonly posicao = new Vetor2d();
+    private angulo = 0;
     readonly vertices: Vertices2d;
     readonly bordas: Bordas2d;
     corpo: Corpo2d;
@@ -21,14 +22,14 @@ export class Forma2d {
     private ultimoVerticeId = 0;
     
     constructor(
-        posicao: Vetor2d,
-        vetores: Vetor2d[],
+        posicao: IReadOnlyVetor2d,
+        vetores: IReadOnlyVetor2d[],
         opcoes?: IForma2dOpcoes
     ) {
         (<any>Object).assign(this, opcoes);
         this.id = this.id || Mundo2d.obterProximoFormaId();
         this.nome = this.nome || `forma${this.id}`;
-        this.posicao = posicao.copia;
+        this.posicao.set(posicao);
         this.vertices = new Vertices2d(this, vetores);
         this.eixos = new Eixos2d(this.vertices);
         this.bordas = new Bordas2d(this.vertices);
@@ -44,14 +45,24 @@ export class Forma2d {
         this.corpo = corpo;
     }
 
-    private _calcularArea() {
+    private _calcularArea(abs: boolean = true) {
         let area = 0;
 
         for(const vertice of this.vertices) {
             area += vertice.cross(this.vertices.proximo(vertice));
         }
 
-        return Math.abs(area) / 2;
+        if (!abs) return area /2;
+        else return Math.abs(area) / 2;
+    }
+
+    atualizar(posicao: Vetor2d, angulo: number) {
+        const rot = angulo - this.angulo;
+        this.vertices.subV(this.posicao).rotV(rot).adicV(posicao);
+        this.eixos.rot(rot);
+        this.posicao.subV(this.posicao).rotV(rot).adicV(posicao);
+        this.bordas.set(this.vertices);
+        this.angulo = angulo;
     }
 
     public calcularInercia(densidade: number) {
@@ -70,33 +81,6 @@ export class Forma2d {
         return ((this.area * densidade) / 6) * (numerator / denominator);
     }
 
-    private _transformarConvexo(vetores: Array<Vetor2d>): Array<Vetor2d> {
-        let baixos = new Array<Vetor2d>();
-        let altos = new Array<Vetor2d>();
-
-        vetores = vetores.slice(0).sort((v1, v2) => {
-            const v = v1.x - v2.x;
-            return v !== 0 ? v : v1.y - v2.y;
-        });
-    
-        for(const vetor of vetores) {
-            while(baixos.length >= 2 && Vetor2d.cross3(baixos[baixos.length - 2], baixos[baixos.length - 1], vetor) <= 0)
-                baixos.pop();
-            baixos.push(vetor);
-        }
-
-        for(const vetor of vetores.reverse()) {
-            while(altos.length >= 2 && Vetor2d.cross3(altos[altos.length - 2], altos[altos.length - 1], vetor) <= 0)
-                altos.pop();
-            altos.push(vetor);
-        }
-
-        baixos.pop();
-        altos.pop();
-
-        return altos.concat(baixos);
-    }
-
     private _centralizar() {
         const centro = new Vetor2d();
 
@@ -107,9 +91,11 @@ export class Forma2d {
             centro.adicV(temp);
         }
 
-        centro.divV(this.area * 6);
+        let area = this._calcularArea(false);
+        centro.divV(area * 6);
 
-        this.vertices.subV(this.bordas.max).subV(centro).adicV(this.posicao);
+        this.vertices.adicV(this.posicao);
+        this.vertices.subV(centro);
         this.bordas.set(this.vertices);
     }
 }

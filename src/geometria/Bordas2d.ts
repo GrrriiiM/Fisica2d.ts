@@ -1,4 +1,4 @@
-import { Vetor2d } from "./Vetor2d";
+import { Vetor2d, IReadOnlyVetor2d } from "./Vetor2d";
 import { Vertices2d } from "./Vertices2d";
 
 export class Bordas2d {
@@ -58,7 +58,7 @@ export class Bordas2d {
         ];
     }
 
-    contem(ponto: Vetor2d): boolean {
+    contem(ponto: IReadOnlyVetor2d): boolean {
         var x = ponto.x; 
         var y = ponto.y;
 

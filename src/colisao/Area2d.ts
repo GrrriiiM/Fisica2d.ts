@@ -6,6 +6,7 @@ export class Area2d {
     readonly id: string;
     readonly bordas: Bordas2d;
     readonly formas = new Array<Forma2d>();
+    par: boolean = false;
     constructor(
         readonly linha: number,
         readonly coluna: number,

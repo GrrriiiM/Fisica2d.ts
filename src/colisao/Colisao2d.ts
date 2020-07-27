@@ -9,10 +9,10 @@ export class Colisao2d {
     readonly corpoB: Corpo2d;
     eixoForma: Forma2d;
     eixoIndice: number;
-    norma: Vetor2d;
-    tangente: Vetor2d;
+    readonly norma = new Vetor2d();
+    readonly tangente = new Vetor2d();
     sobreposicao: number;
-    penetracao: Vetor2d;
+    readonly penetracao = new Vetor2d();
     contatos = new Array<Contato2d>();
     constructor(
         readonly formaA: Forma2d,

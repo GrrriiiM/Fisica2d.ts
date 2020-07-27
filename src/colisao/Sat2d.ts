@@ -2,12 +2,15 @@ import { Forma2d } from "../geometria/Forma2d";
 import { Colisao2d } from "./Colisao2d";
 import { Eixo2d } from "../geometria/Eixos2d";
 import { Vertices2d, Vertice2d } from "../geometria/Vertices2d";
-import { Vetor2d } from "../geometria/Vetor2d";
+import { Vetor2d, IReadOnlyVetor2d } from "../geometria/Vetor2d";
 import { Contato2d } from "./Contato2d";
 
 export class Sat2d {
     static detectar(formaA: Forma2d, formaB: Forma2d, colisaoAnterior: Colisao2d): Colisao2d {
         
+        if ((formaA.corpo.estatico || formaA.corpo.dormindo) && (formaB.corpo.estatico || formaB.corpo.dormindo))
+            return null;
+
         if (!formaA.bordas.sobrepoem(formaB.bordas)) return null;
 
         let colisao: Colisao2d;
@@ -67,14 +70,14 @@ export class Sat2d {
         let eixo = colisao.eixoForma.eixos[colisao.eixoIndice];
         
         if (eixo.dot(corpoB.posicao.sub(corpoA.posicao)) < 0) {
-            colisao.norma = eixo.copia;
+            colisao.norma.set(eixo.copia);
         } else {
-            colisao.norma = eixo.copia.inv();
+            colisao.norma.set(eixo.copia.inv());
         }
 
-        colisao.tangente = colisao.norma.perp();
+        colisao.tangente.set(colisao.norma.perp());
 
-        colisao.penetracao = colisao.norma.mult(colisao.sobreposicao);; 
+        colisao.penetracao.set(colisao.norma.mult(colisao.sobreposicao)); 
 
         const contatos = new Array<Vertice2d>();
 
@@ -138,7 +141,7 @@ export class Sat2d {
         return resultado;
     }
 
-    static _encontrarContatos(formaA: Forma2d, formaB: Forma2d, norma: Vetor2d): Vertice2d[] {
+    static _encontrarContatos(formaA: Forma2d, formaB: Forma2d, norma: IReadOnlyVetor2d): Vertice2d[] {
         let menorDistancia = Number.MAX_VALUE;
         let vertices = formaB.vertices;
         let posicao = formaA.posicao;

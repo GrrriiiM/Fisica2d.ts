@@ -14,8 +14,16 @@ export class Par2d {
     readonly restituicao: number;
     readonly despejo: number;
     private separacao = 0;
-    colisao: Colisao2d;
-    colidiu: boolean = false;
+    private _colisaoIniciada = false;
+    get colisaoIniciada() { return this._colisaoIniciada; }
+    private _colisaoEncerrada = false;
+    get colisaoEncerrada() { return this._colisaoEncerrada; }
+    private _colisao: Colisao2d;
+    get colisao() { return this._colisao; }
+    private _colisaoAnterior: Colisao2d;
+    get colisaoAnterior() { return this._colisaoAnterior; }
+    
+    
 
     constructor(
         readonly formaA: Forma2d,
@@ -36,12 +44,39 @@ export class Par2d {
     }
 
     detectarColisao() {
-        this.colidiu = false;
-        this.colisao = Sat2d.detectar(this.formaA, this.formaB, this.colisao);
+        this._colisaoIniciada = false;
+        this._colisaoAnterior = this.colisao;
+        this._colisao = Sat2d.detectar(this.formaA, this.formaB, this._colisaoAnterior);
+        
         if (this.colisao && this.colisao.contatos.length) {
-            this.colidiu = true;
+            if (!this._colisaoAnterior && this.colisao) {
+                this._colisaoIniciada = true;
+            }
             this.formaA.corpo.contatosQuantidade+=this.colisao.contatos.length;
             this.formaB.corpo.contatosQuantidade+=this.colisao.contatos.length;
+        }
+        if (this._colisaoAnterior && !this.colisao) {
+            this._colisaoEncerrada = true;
+        }
+    }
+
+    atualizarDormindo(tempoEscala: number) {
+        if (this.colisao == null) return;
+
+        const tempoFator = tempoEscala * tempoEscala * tempoEscala;
+
+        const colisao = this.colisao;
+        const corpoA = colisao.corpoA;
+        const corpoB = colisao.corpoB;
+
+        if ((corpoA.dormindo && corpoB.dormindo) || corpoA.estatico || corpoB.estatico) return;
+       
+        if (corpoA.dormindo || corpoB.dormindo) {
+            const corpoDomindo = (corpoA.dormindo && !corpoA.estatico) ? corpoA : corpoB;
+            const corpoMovimento = corpoDomindo == corpoA ? corpoB : corpoA;
+
+            if (!corpoDomindo.estatico && corpoMovimento.movimento > 0.18 * tempoFator)
+                corpoDomindo.setDormindo(false);
         }
     }
 
@@ -52,7 +87,7 @@ export class Par2d {
         const corpoB = this.colisao.corpoB;
         const norma = this.colisao.norma;
         
-        this.separacao = norma.dot(corpoB.impulsoPosicao.adic(corpoB.posicao).sub(corpoA.impulsoPosicao.adic(corpoB.posicao.sub(colisao.penetracao))));
+        this.separacao = norma.dot(corpoB.correcaoPosicao.adic(corpoB.posicao).sub(corpoA.correcaoPosicao.adic(corpoB.posicao.sub(colisao.penetracao))));
         
     }
 
@@ -68,13 +103,9 @@ export class Par2d {
         if (corpoA.estatico || corpoB.estatico)
             impulso *= 2;
         
-        if (!corpoA.estatico) {
-            corpoA.impulsoPosicao.adicV(norma.mult(impulso * (0.9 / corpoA.contatosQuantidade)));
-        }
+        corpoA.adicionarCorrecaoPosicao(norma, impulso);
 
-        if (!corpoB.estatico) {
-            corpoB.impulsoPosicao.subV(norma.mult(impulso * (0.9 / corpoB.contatosQuantidade)));
-        }
+        corpoB.adicionarCorrecaoPosicao(norma.inv(), impulso);
     }
 
     prepararResolucaoColisao() {
@@ -91,11 +122,11 @@ export class Par2d {
             const impulsoTangente = contato.impulsoTangente;
             if (impulsoNorma != 0 || impulsoTangente != 0) {
                 const impulso = norma.mult(impulsoNorma).adic(tangente.mult(impulsoTangente));
-                if (!corpoA.estatico) {
+                if (!corpoA.estatico && !corpoA.dormindo) {
                     corpoA.prePosicao.adicV(impulso.mult(corpoA.massaInvertida));
                     corpoA.preAngulo += vetor.sub(corpoA.posicao).cross(impulso) * corpoA.inerciaInvertida;
                 }
-                if (!corpoB.estatico) {
+                if (!corpoB.estatico && !corpoB.dormindo) {
                     vetor.sub(corpoB.posicao);
                     corpoB.prePosicao.subV(impulso.mult(corpoB.massaInvertida));
                     corpoB.preAngulo -= vetor.sub(corpoB.posicao).cross(impulso) * corpoB.inerciaInvertida;
@@ -117,17 +148,17 @@ export class Par2d {
         const tangente = colisao.tangente;
         const contatoCompartilhado = 1/contatos.length;
 
-        corpoA.velocidade.set(corpoA.posicao.sub(corpoA.prePosicao));
-        corpoB.velocidade.set(corpoB.posicao.sub(corpoB.prePosicao));
-        corpoA.velocidadeAngular = corpoA.angulo - corpoA.preAngulo;
-        corpoB.velocidadeAngular = corpoB.angulo - corpoB.preAngulo;
+        const velocidadeA = corpoA.posicao.sub(corpoA.prePosicao);
+        const velocidadeB = corpoB.posicao.sub(corpoB.prePosicao);
+        const velocidadeAngularA = corpoA.angulo - corpoA.preAngulo;
+        const velocidadeAngularB = corpoB.angulo - corpoB.preAngulo;
 
         for(const contato of contatos) {
             const vetor = contato;
             const offsetA = vetor.sub(corpoA.posicao);
             const offsetB = vetor.sub(corpoB.posicao);
-            const velocidadePontoA = corpoA.velocidade.adic(offsetA.perp().mult(corpoA.velocidadeAngular));
-            const velocidadePontoB = corpoB.velocidade.adic(offsetB.perp().mult(corpoB.velocidadeAngular));
+            const velocidadePontoA = velocidadeA.adic(offsetA.perp().mult(velocidadeAngularA));
+            const velocidadePontoB = velocidadeB.adic(offsetB.perp().mult(velocidadeAngularB));
             const velocidadeRelativa = velocidadePontoA.sub(velocidadePontoB);
             const velocidadeNorma = norma.dot(velocidadeRelativa);
             const velocidadeTangente = tangente.dot(velocidadeRelativa);
@@ -170,12 +201,12 @@ export class Par2d {
             
             const impulso = norma.mult(impulsoNorma).adic(tangente.mult(impulsoTangente));
 
-            if (!corpoA.estatico) {
+            if (!corpoA.estatico && !corpoA.dormindo) {
                 corpoA.prePosicao.adicV(impulso.mult(corpoA.massaInvertida))
                 corpoA.preAngulo += offsetA.cross(impulso) * corpoA.inerciaInvertida;
             }
 
-            if (!corpoB.estatico) {
+            if (!corpoB.estatico && !corpoB.dormindo) {
                 corpoB.prePosicao.subV(impulso.mult(corpoB.massaInvertida))
                 corpoB.preAngulo -= offsetB.cross(impulso) * corpoB.inerciaInvertida;
             }

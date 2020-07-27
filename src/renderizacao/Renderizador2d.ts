@@ -62,12 +62,15 @@ export class Canvas2d {
 
     renderizar(renderizacao: Renderizacao2d) {
         this.renderizarFundo();
+        this.renderizarAreas(renderizacao.areas);
         this.renderizarBordas(renderizacao.bordas);
         this.renderizarEixos(renderizacao.eixos);
-        this.renderizarAreas(renderizacao.areas);
+        this.renderizarEixoPrincipal(renderizacao.eixo);
         this.renderizarFormas(renderizacao.formas);
         this.renderizarContatos(renderizacao.contatos);
         this.renderizarVelocidades(renderizacao.velocidades);
+        this.renderizarCentros(renderizacao.centros);
+        this.renderizarDormindos(renderizacao.dormindos);
     }
 
     renderizarFundo() {
@@ -82,6 +85,11 @@ export class Canvas2d {
 
     renderizarEixos(pathD: string) {
         this._context.strokeStyle = "purple";
+        this._context.stroke(new Path2D(pathD));
+    }
+
+    renderizarEixoPrincipal(pathD: string) {
+        this._context.strokeStyle = "red";
         this._context.stroke(new Path2D(pathD));
     }
 
@@ -105,6 +113,16 @@ export class Canvas2d {
     renderizarVelocidades(pathD: string) {
         this._context.strokeStyle = "blue";
         this._context.stroke(new Path2D(pathD));
+    }
+
+    renderizarCentros(pathD: string) {
+        this._context.fillStyle = "blue";
+        this._context.fill(new Path2D(pathD));
+    }
+
+    renderizarDormindos(pathD: string) {
+        this._context.fillStyle = "orange";
+        this._context.fill(new Path2D(pathD));
     }
 
 
