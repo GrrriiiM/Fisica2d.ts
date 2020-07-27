@@ -1,5 +1,6 @@
 export class Renderizacao2d {
-    constructor(mundo, camera) {
+    constructor(mundo, camera, opcoes) {
+        const op = opcoes !== null && opcoes !== void 0 ? opcoes : {};
         this.formas = this._formasPathD(mundo, camera);
         this.areas = this._areasPathD(mundo, camera);
         this.contatos = this._contatosPathD(mundo, camera);
@@ -9,6 +10,7 @@ export class Renderizacao2d {
         this.velocidades = this._velocidadesPathD(mundo, camera);
         this.centros = this._centrosPathD(mundo, camera);
         this.dormindos = this._dormindosPathD(mundo, camera);
+        this.logCorpos = this._logCorpo(mundo, op.logCorpos);
     }
     _bordasPathD(mundo, camera) {
         let pathDs = new Array();
@@ -115,6 +117,22 @@ export class Renderizacao2d {
             }
         }
         return pathDs.join(" ");
+    }
+    _logCorpo(mundo, nomeCorpos) {
+        let logCorpos = new Array();
+        if (nomeCorpos) {
+            let vetor2dToString = (v) => { return `{ x: ${Math.round(v.x * 100) / 100}, y: ${Math.round(v.y * 100) / 100} }`; };
+            for (const nomeCorpo of nomeCorpos) {
+                for (const corpo of mundo.corpos.filter(_ => _.nome == nomeCorpo)) {
+                    logCorpos.push(`posicao    : ${vetor2dToString(corpo.posicao)}`);
+                    logCorpos.push(`velocidade : ${vetor2dToString(corpo.velocidade)}`);
+                    logCorpos.push(`rapidez    : ${Math.round(corpo.rapidez * 100) / 100}`);
+                    logCorpos.push(`angulo     : ${Math.round(corpo.angulo * 100) / 100}`);
+                    logCorpos.push(`vel. ang.  : ${Math.round(corpo.velocidadeAngular * 100) / 100}`);
+                }
+            }
+        }
+        return logCorpos;
     }
     _desenharQuadrado(vetor, tamanho) {
         return `M${vetor.x - tamanho / 2},${vetor.y - tamanho / 2}L${vetor.x + tamanho / 2},${vetor.y - tamanho / 2}L${vetor.x + tamanho / 2},${vetor.y + tamanho / 2}L${vetor.x - tamanho / 2},${vetor.y + tamanho / 2}Z`;

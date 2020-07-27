@@ -9,7 +9,7 @@ const mundo = new Mundo2d(1000, 600, { gravidade: new Vetor2d(0, 0.1), paredes: 
 const eventos = new Eventos2d();
 const motor = new Motor2d(mundo, eventos);
 const processador = new Processador2d(motor);
-const canvas = new Canvas2d(processador, { largura: mundo.largura, altura: mundo.altura });
+const canvas = new Canvas2d(processador, { largura: mundo.largura, altura: mundo.altura, logCorpos: ["bola"] });
 canvas.moverCamera(0, 0);
 const tamanhoCaixa = 20;
 for (let i = 0; i < 4; i++) {

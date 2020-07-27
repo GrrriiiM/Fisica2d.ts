@@ -56,6 +56,7 @@ export class Corpo2d {
     set contatosQuantidade(v) { this._contatosQuantidade = v; }
     get rapidez() { return this._rapidez; }
     get velocidade() { return this._posicao.sub(this._prePosicao); }
+    get velocidadeAngular() { return this._velocidadeAngular; }
     get rapidezAngular() { return this._rapidezAngular; }
     get correcaoPosicao() { return this._correcaoPosicao; }
     get restituicao() { return this._restituicao; }
