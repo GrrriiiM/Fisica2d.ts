@@ -1,0 +1,1 @@
+{"version":3,"file":"Contato2d.js","sourceRoot":"","sources":["../../../../src/colisao/Contato2d.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,mCAAgC;AAEpD,MAAM,OAAO,SAAU,SAAQ,SAAS;IAGpC,YACI,OAAkB;QAElB,KAAK,CAAC,OAAO,CAAC,KAAK,EAAE,OAAO,CAAC,EAAE,CAAC,CAAA;QALpC,iBAAY,GAAW,CAAC,CAAC;QACzB,oBAAe,GAAW,CAAC,CAAC;IAK5B,CAAC;CACJ"}
