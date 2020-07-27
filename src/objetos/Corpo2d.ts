@@ -47,6 +47,7 @@ export class Corpo2d {
     private _velocidade = new Vetor2d();
     get velocidade(): IReadOnlyVetor2d { return this._posicao.sub(this._prePosicao); }
     private _velocidadeAngular = 0;
+    get velocidadeAngular() { return this._velocidadeAngular; }
     private _rapidezAngular = 0;
     get rapidezAngular(): number { return this._rapidezAngular; }
 

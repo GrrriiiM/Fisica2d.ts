@@ -1,13 +1,21 @@
-import { Camera2d } from "./camera2d";
+import { Camera2d } from "./Camera2d";
 import { Vetor2d } from "../geometria/Vetor2d";
 import { Processador2d } from "../nucleo/processador2d";
 import { IProcessador2d } from "./IProcessador2d";
 import { Renderizacao2d } from "./renderizacao2d";
 
+export interface ICanvasOpcoes {
+    elementoQuerySelector?: string,
+    largura?: number,
+    altura?: number,
+    logCorpos?: string[]
+}
+
 export class Canvas2d {
-    readonly elementoHtml: string;
-    readonly largura: number;
-    readonly altura: number;
+    readonly elementoHtml: string = "body";
+    readonly largura: number = 500;
+    readonly altura: number = 500;
+    readonly logCorpos = new Array<string>();
     private frameId = 0;
     private executando = false;
     private tempoFrame = 0;
@@ -17,15 +25,14 @@ export class Canvas2d {
     private requisitarFrame: (callback: FrameRequestCallback) => number;
     constructor(
         readonly processador: IProcessador2d,
-        {
-            elementoQuerySelector = "body",
-            largura = 500,
-            altura = 500
-        } = {}
+        opcoes?: ICanvasOpcoes
     ) {
-        let element = document.querySelector(elementoQuerySelector);
-        this.altura = altura;
-        this.largura = largura;
+        const op = opcoes ?? {};
+        this.elementoHtml = op.elementoQuerySelector ?? this.elementoHtml;
+        this.largura = op.largura ?? this.largura;
+        this.altura = op.altura ?? this.altura;
+        this.logCorpos = op.logCorpos ?? this.logCorpos;
+        let element = document.querySelector(this.elementoHtml);
         let canvas = document.createElement("canvas");
         this._context = canvas.getContext("2d");
         canvas.height = this.altura;
@@ -51,7 +58,7 @@ export class Canvas2d {
         this.tempoFrame = tempo - this.tempoTotal;
         this.tempoTotal = tempo;
         if (this.executando) {
-            this.renderizar(this.processador.requisitarFrame(this.tempoFrame, this.camera, this.frameId));
+            this.renderizar(this.processador.requisitarFrame(this.tempoFrame, this.camera, this.frameId, { logCorpos: this.logCorpos }));
             this.frameId = this.requisitarFrame(this.executar.bind(this));
         }
     }
@@ -71,6 +78,8 @@ export class Canvas2d {
         this.renderizarVelocidades(renderizacao.velocidades);
         this.renderizarCentros(renderizacao.centros);
         this.renderizarDormindos(renderizacao.dormindos);
+        this.renderizarFps(1000/this.tempoFrame);
+        this.renderizarLog(renderizacao.logCorpos);
     }
 
     renderizarFundo() {
@@ -126,4 +135,40 @@ export class Canvas2d {
     }
 
 
+    renderizarFps(fps: number) {
+        let fpsText = `fps: ${Math.round(fps)}`;
+        this._context.font = "18px Consolas";
+        let fpsMeasureText = this._context.measureText(fpsText).width;
+
+        this._context.fillStyle = "blue";
+        this._context.globalAlpha = 0.5;
+        let posicaoX = this.largura - fpsMeasureText - 20;
+        let posicaoY = this.altura - 10
+        let largura = fpsMeasureText + 10;
+        let altura = 20;
+        this._context.fill(new Path2D(`M${posicaoX},${posicaoY},L${posicaoX + largura},${posicaoY}L${posicaoX + largura},${posicaoY - altura}L${posicaoX},${posicaoY - altura}`));
+        this._context.globalAlpha = 1;
+        
+        this._context.fillStyle = "#FFFFFF";
+        this._context.fillText(fpsText, this.largura - fpsMeasureText - 15,this.altura - 15);
+    }
+
+    renderizarLog(logs: string[]) {
+        if (logs && logs.length) {
+            this._context.fillStyle = "blue";
+            this._context.globalAlpha = 0.5;
+            let altura = 15+(logs.length*12);
+            let largura = 250;
+            this._context.fill(new Path2D(`M10,10,L${largura},10L${largura},${altura}L10,${altura}`));
+            this._context.globalAlpha = 1;
+            altura = 0;
+            this._context.font = "11px Consolas";
+            this._context.fillStyle = "#FFFFFF";
+
+            for(const log of logs) {
+                this._context.fillText(log, 15, 22 + altura);
+                altura+=11;
+            }
+        }
+    }
 }
