@@ -1,4 +1,4 @@
-import { Camera2d } from "./camera2d.js";
+import { Camera2d } from "./Camera2d.js";
 export class Canvas2d {
     constructor(processador, { elementoQuerySelector = "body", largura = 500, altura = 500 } = {}) {
         this.processador = processador;
