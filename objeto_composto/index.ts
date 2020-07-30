@@ -17,7 +17,7 @@ const canvas = new Canvas2d(processador, { largura: mundo.largura, altura: mundo
 let forma1 = Construtor2d.Retangulo(225, 225, 200, 50).formas[0];
 let forma2 = Construtor2d.Retangulo(175, 175, 50, 200).formas[0];
 
-let corpo1 = new Corpo2d(new Vetor2d(180,180), [forma1, forma2], {angulo: 0*(Math.PI/180)});
+let corpo1 = new Corpo2d(new Vetor2d(200,200), [forma1, forma2], {angulo: 45*(Math.PI/180)});
 
 let forma3 = Construtor2d.Retangulo(300, 100, 100, 25).formas[0];
 let forma4 = Construtor2d.Retangulo(300, 100, 25, 100).formas[0];
