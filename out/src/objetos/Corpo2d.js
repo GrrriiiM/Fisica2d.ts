@@ -36,7 +36,7 @@ export class Corpo2d {
         this._id = Mundo2d.obterProximoCorpoId();
         this._nome = `corpo${this._id}`;
         for (const forma of formas) {
-            forma.definir(this);
+            forma.definir(this, posicao);
             this._formas.push(forma);
         }
         this.setPosicao(posicao);
@@ -179,7 +179,7 @@ export class Corpo2d {
         const minMovimento = Math.min(this._movimento, movimento);
         const maxMovimento = Math.max(this._movimento, movimento);
         this._movimento = 0.9 * minMovimento + 0.1 * maxMovimento;
-        if (this._dormindoContadorLimite > 0 && this._movimento < 0.08 * tempoFator) {
+        if (this._dormindoContadorLimite > 0 && this._movimento < 0.02 * tempoFator) {
             this._dormindoContador += 1;
             if (this._dormindoContador >= this._dormindoContadorLimite) {
                 this.setDormindo(true);

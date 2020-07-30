@@ -129,6 +129,7 @@ export class Renderizacao2d {
                     logCorpos.push(`rapidez    : ${Math.round(corpo.rapidez * 100) / 100}`);
                     logCorpos.push(`angulo     : ${Math.round(corpo.angulo * 100) / 100}`);
                     logCorpos.push(`vel. ang.  : ${Math.round(corpo.velocidadeAngular * 100) / 100}`);
+                    logCorpos.push(`movimento  : ${Math.round(corpo.movimento * 100) / 100}`);
                     logCorpos.push(`dormindo   : ${corpo.dormindo}`);
                 }
             }

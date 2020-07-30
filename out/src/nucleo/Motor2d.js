@@ -69,12 +69,14 @@ export class Motor2d {
                 for (let j = i + 1; j < area.formas.length; j++) {
                     const formaA = area.formas[i];
                     const formaB = area.formas[j];
-                    if (!formaA.corpo.estatico || !formaB.corpo.estatico) {
-                        area.par = true;
-                        const id = Par2d.CriarId(formaA, formaB);
-                        if (!pares[id]) {
-                            pares[id] = new Par2d(formaA, formaB);
-                        }
+                    if (formaA.corpo == formaB.corpo)
+                        continue;
+                    if (formaA.corpo.estatico && formaB.corpo.estatico)
+                        continue;
+                    area.par = true;
+                    const id = Par2d.CriarId(formaA, formaB);
+                    if (!pares[id]) {
+                        pares[id] = new Par2d(formaA, formaB);
                     }
                 }
             }

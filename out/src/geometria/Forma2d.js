@@ -6,6 +6,7 @@ import { Vetor2d } from "./Vetor2d.js";
 export class Forma2d {
     constructor(posicao, vetores, opcoes) {
         this.posicao = new Vetor2d();
+        this._desvio = new Vetor2d();
         this.angulo = 0;
         this.ultimoVerticeId = 0;
         Object.assign(this, opcoes);
@@ -21,8 +22,9 @@ export class Forma2d {
     obterProximoVerticeId() {
         return this.ultimoVerticeId += 1;
     }
-    definir(corpo) {
+    definir(corpo, posicao) {
         this.corpo = corpo;
+        this._desvio.set(posicao.sub(this.posicao));
     }
     _calcularArea(abs = true) {
         let area = 0;
@@ -36,9 +38,10 @@ export class Forma2d {
     }
     atualizar(posicao, angulo) {
         const rot = angulo - this.angulo;
-        this.vertices.subV(this.posicao).rotV(rot).adicV(posicao);
+        this._desvio.rotV(rot);
+        this.vertices.subV(this.posicao).rotV(rot).adicV(posicao.adic(this._desvio));
         this.eixos.rot(rot);
-        this.posicao.subV(this.posicao).rotV(rot).adicV(posicao);
+        this.posicao.subV(this.posicao).rotV(rot).adicV(posicao.adic(this._desvio));
         this.bordas.set(this.vertices);
         this.angulo = angulo;
     }
