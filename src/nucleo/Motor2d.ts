@@ -5,6 +5,7 @@ import { Area2d } from "../colisao/Area2d";
 import { Par2d } from "../colisao/Pares2d";
 import { Colisao2d } from "../colisao/Colisao2d";
 import { Eventos2d } from "./Eventos2d";
+import { Restricao2d } from "../objetos/Restricao2d";
 
 export class Motor2d {
     private tempoEscala = 1;
@@ -18,6 +19,7 @@ export class Motor2d {
         delta = delta || 1000/60;
         correcao = correcao || 1;
         const corpos = this.mundo.corpos;
+        const restricoes = this.mundo.restricoes;
         const areas = this.mundo.areas;
         const pares = (<any>Object).values(this.mundo.pares);
         
@@ -30,6 +32,10 @@ export class Motor2d {
         this._aplicarGravidade(corpos);
 
         this._atualizarCorpos(corpos, delta, correcao);
+
+        this._prepararRestricoes(corpos);
+
+        this._resolverRestricoes(this.tempoEscala, restricoes);
 
         this._atualizarAreas(corpos, areas);
 
@@ -45,6 +51,10 @@ export class Motor2d {
 
         this._resolverImpulso(corpos);
 
+        this._prepararRestricoes(corpos);
+        
+        this._resolverRestricoes(this.tempoEscala, restricoes);
+
         this._prepararResolucaoColisao(pares);
 
         this._resolverColisao(pares, this.tempoEscala);
@@ -56,6 +66,20 @@ export class Motor2d {
         for(let corpo of corpos) {
             if (!corpo.estatico && !corpo.dormindo) {
                 corpo.adicionarForca(this.mundo.gravidade.mult(corpo.massa*this.mundo.gravidadeEscala));
+            }
+        }
+    }
+
+    private _prepararRestricoes(corpos: ReadonlyArray<Corpo2d>) {
+        for(let corpo of corpos) {
+            corpo.prepararRestricao();
+        }
+    }
+
+    private _resolverRestricoes(tempoEscala: number, restricoes: ReadonlyArray<Restricao2d>) {
+        for(let i=0;i<2;i++) {
+            for(let restricao of restricoes) {
+                restricao.resolver(tempoEscala);
             }
         }
     }
@@ -95,12 +119,12 @@ export class Motor2d {
                 for(let j=i+1;j<area.formas.length;j++) {
                     const formaA = area.formas[i];
                     const formaB = area.formas[j];
-                    if (!formaA.corpo.estatico || !formaB.corpo.estatico) {
-                        area.par = true;
-                        const id = Par2d.CriarId(formaA, formaB);
-                        if (!pares[id]) {
-                            pares[id] = new Par2d(formaA, formaB);
-                        }
+                    if (formaA.corpo == formaB.corpo) continue;
+                    if (formaA.corpo.estatico && formaB.corpo.estatico) continue;
+                    area.par = true;
+                    const id = Par2d.CriarId(formaA, formaB);
+                    if (!pares[id]) {
+                        pares[id] = new Par2d(formaA, formaB);
                     }
                 }
             }

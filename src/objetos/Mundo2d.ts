@@ -3,6 +3,7 @@ import { Vetor2d, IReadOnlyVetor2d } from "../geometria/Vetor2d";
 import { Construtor2d } from "../geometria/Construtor2d";
 import { Area2d } from "../colisao/Area2d";
 import { Par2d } from "../colisao/Pares2d";
+import { Restricao2d } from "./Restricao2d";
 
 
 export interface IMundo2dOpcoes {
@@ -16,7 +17,9 @@ export interface IMundo2dOpcoes {
 
 export class Mundo2d {
     private _corpos = new Array<Corpo2d>();
-    get corpos(): ReadonlyArray<Corpo2d> { return this._corpos }
+    get corpos(): ReadonlyArray<Corpo2d> { return this._corpos; }
+    private _restricoes = new Array<Restricao2d>();
+    get restricoes(): ReadonlyArray<Restricao2d> { return this._restricoes; }
     readonly gravidade = new Vetor2d();
     readonly gravidadeEscala: number = 1;
     readonly tamanhoArea: number = 48;
@@ -41,25 +44,31 @@ export class Mundo2d {
         this._criarAreas(this.tamanhoArea);
     }
 
+
     adicionarCorpo(corpo: Corpo2d) : Corpo2d {
         this._corpos.push(corpo);
         return corpo;
+    }
+
+    adicionarRestricao(restricao: Restricao2d) : Restricao2d {
+        this._restricoes.push(restricao);
+        return restricao;
     }
 
     
 
     private _adicionarParedes(esquerda: boolean, baixo: boolean, direita: boolean, cima: boolean, friccao?: number) {
         if (esquerda) {
-            this.adicionarCorpo(Construtor2d.Retangulo(this.largura, this.altura/2, 50, this.altura, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(this.largura, this.altura/2,[Construtor2d.Retangulo(50, this.altura)], { estatico: true, friccao: friccao }));
         }
         if (baixo) {
-            this.adicionarCorpo(Construtor2d.Retangulo(this.largura/2, this.altura, this.largura, 50, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(this.largura/2, this.altura, [Construtor2d.Retangulo(this.largura, 50)], { estatico: true, friccao: friccao }));
         }
         if (direita) {
-            this.adicionarCorpo(Construtor2d.Retangulo(0, this.altura/2, 50, this.altura, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(0, this.altura/2, [Construtor2d.Retangulo(50, this.altura)], { estatico: true, friccao: friccao }));
         }
         if (cima) {
-            this.adicionarCorpo(Construtor2d.Retangulo(this.largura/2, 0, this.largura, 50, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(this.largura/2, 0, [Construtor2d.Retangulo(this.largura, 50)], { estatico: true, friccao: friccao }));
         }
     }
 

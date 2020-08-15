@@ -1,36 +1,46 @@
-import { Forma2d } from "./Forma2d";
+import { Forma2d, IForma2dOpcoes } from "./Forma2d";
 import { Vetor2d, IReadOnlyVetor2d } from "./Vetor2d";
 import { Corpo2d, ICorpo2dOpcoes } from "../objetos/Corpo2d";
 
-export interface IConstrutor2dOpcoes extends ICorpo2dOpcoes {
+export interface IConstrutorCorpo2dOpcoes extends ICorpo2dOpcoes {
+}
+
+export interface IConstrutorForma2dOpcoes extends ICorpo2dOpcoes {
+    x?: number,
+    y?: number
 }
 
 export class Construtor2d {
 
-    static Quadrado(x: number, y: number, tamanho: number, opcoes?: IConstrutor2dOpcoes): Corpo2d {
-        return this.Retangulo(x , y, tamanho, tamanho, opcoes);
+    static Corpo(x: number, y: number, formas: Forma2d[], opcoes?: IConstrutorCorpo2dOpcoes) {
+        return new Corpo2d(new Vetor2d(x, y), formas, opcoes);
+    };
+    
+
+    static Quadrado(tamanho: number, opcoes?: IForma2dOpcoes): Forma2d {
+        return this.Retangulo(tamanho, tamanho, opcoes);
     }
 
-    static Retangulo(x: number, y: number, largura: number, altura, opcoes?: IConstrutor2dOpcoes): Corpo2d {
+    static Retangulo(largura: number, altura, opcoes?: IConstrutorForma2dOpcoes): Forma2d {
         const vetores = [new Vetor2d(0,0), new Vetor2d(0,altura), new Vetor2d(largura,altura), new Vetor2d(largura,0)];
-        return this.PoligonoConvexoVetores(x, y, vetores, opcoes);
+        return this.PoligonoConvexoVetores(vetores, opcoes);
     }
 
-    static trianguloReto(x: number, y: number, largura: number, altura: number, inverter: boolean, opcoes?: IConstrutor2dOpcoes): Corpo2d {
+    static TrianguloReto(largura: number, altura: number, inverter: boolean, opcoes?: IConstrutorForma2dOpcoes): Forma2d {
         const vetores = [new Vetor2d(!inverter ? 0 : largura, 0), new Vetor2d(largura,altura), new Vetor2d(0,altura)];
-        return this.PoligonoConvexoVetores(x, y, vetores, opcoes);
+        return this.PoligonoConvexoVetores(vetores, opcoes);
     }
 
-    static Circulo(x: number, y: number, raio: number, opcoes?: IConstrutor2dOpcoes): Corpo2d {
+    static Circulo(raio: number, opcoes?: IConstrutorForma2dOpcoes): Forma2d {
         const maximoLados = 25;
         var lados = Math.ceil(Math.max(10, Math.min(maximoLados, raio)));
 
         if (lados % 2 === 1) lados += 1;
-        return this.PoligonoConvexoLados(x, y, lados, raio, opcoes);
+        return this.PoligonoConvexoLados(lados, raio, opcoes);
     }
 
 
-    static PoligonoConvexoLados(x: number, y: number, lados: number, raio: number, opcoes?: IConstrutor2dOpcoes): Corpo2d {
+    static PoligonoConvexoLados(lados: number, raio: number, opcoes?: IConstrutorForma2dOpcoes): Forma2d {
         const vetores = new Array<Vetor2d>();
 
         if (lados < 3) lados = 4;
@@ -43,13 +53,13 @@ export class Construtor2d {
             vetores.push(new Vetor2d(Math.cos(angulo) * raio, Math.sin(angulo) * raio));
         }
 
-        return this.PoligonoConvexoVetores(x, y, vetores, opcoes);
+        return this.PoligonoConvexoVetores(vetores, opcoes);
     }
 
 
-    static PoligonoConvexoVetores(x: number, y: number, vetores: IReadOnlyVetor2d[], opcoes?: IConstrutor2dOpcoes): Corpo2d {
-        const posicao = new Vetor2d(x, y);
-        return new Corpo2d(posicao, [new Forma2d(posicao, vetores)], opcoes);
+    static PoligonoConvexoVetores(vetores: IReadOnlyVetor2d[], opcoes?: IConstrutorForma2dOpcoes): Forma2d {
+        const op = opcoes || {};
+        return new Forma2d(new Vetor2d(op.x ?? 0, op.y ?? 0), vetores, op);
     }
 
 

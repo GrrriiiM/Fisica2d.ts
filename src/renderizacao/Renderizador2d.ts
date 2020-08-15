@@ -4,14 +4,14 @@ import { Processador2d } from "../nucleo/processador2d";
 import { IProcessador2d } from "./IProcessador2d";
 import { Renderizacao2d } from "./renderizacao2d";
 
-export interface ICanvasOpcoes {
+export interface IRenderizadorOpcoes {
     elementoQuerySelector?: string,
     largura?: number,
     altura?: number,
     logCorpos?: string[]
 }
 
-export class Canvas2d {
+export class Renderizador2d {
     readonly elementoHtml: string = "body";
     readonly largura: number = 500;
     readonly altura: number = 500;
@@ -25,7 +25,7 @@ export class Canvas2d {
     private requisitarFrame: (callback: FrameRequestCallback) => number;
     constructor(
         readonly processador: IProcessador2d,
-        opcoes?: ICanvasOpcoes
+        opcoes?: IRenderizadorOpcoes
     ) {
         const op = opcoes ?? {};
         this.elementoHtml = op.elementoQuerySelector ?? this.elementoHtml;
@@ -47,6 +47,12 @@ export class Canvas2d {
         this.camera = new Camera2d(this.largura, this.altura);
 
         this.executar.bind(this);
+    }
+
+
+    
+    adicionarLogCorpo(nome: string) {
+        this.logCorpos.push(nome);
     }
 
     iniciar() {
@@ -73,6 +79,7 @@ export class Canvas2d {
         this.renderizarBordas(renderizacao.bordas);
         this.renderizarEixos(renderizacao.eixos);
         this.renderizarEixoPrincipal(renderizacao.eixo);
+        this.renderizarRestricoes(renderizacao.restricoes);
         this.renderizarFormas(renderizacao.formas);
         this.renderizarContatos(renderizacao.contatos);
         this.renderizarVelocidades(renderizacao.velocidades);
@@ -132,6 +139,11 @@ export class Canvas2d {
     renderizarDormindos(pathD: string) {
         this._context.fillStyle = "orange";
         this._context.fill(new Path2D(pathD));
+    }
+
+    renderizarRestricoes(pathD: string) {
+        this._context.strokeStyle = "yellow";
+        this._context.stroke(new Path2D(pathD));
     }
 
 

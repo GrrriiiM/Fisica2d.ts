@@ -3,6 +3,7 @@ import { Vetor2d, IReadOnlyVetor2d } from "../geometria/Vetor2d";
 import { Mundo2d } from "./Mundo2d";
 import { Forma2d } from "../geometria/Forma2d";
 import { Utilidades } from "../nucleo/Utilidades";
+import { Restricao2d } from "./Restricao2d";
 
 export interface ICorpo2dOpcoes{
     nome?: string,
@@ -80,13 +81,20 @@ export class Corpo2d {
     private _dormindo = false;
     get dormindo() { return this._dormindo; }
     private _dormindoContador = 0;
-    readonly _dormindoContadorLimite = 60;
+    readonly _dormindoContadorLimite = 120;
     
     private _tempoEscala = 1;
 
     private _estatico = false;
     private _massaNaoEstatico = 0;
     private _inerciaNaoEstatico = 0;
+
+    private _restricao = new Vetor2d();
+    get restricao(): IReadOnlyVetor2d { return this._restricao; }
+
+    private _restricaoAngulo: number = 0;
+    get restricaoAngulo(): number { return this._restricaoAngulo; }
+    private _desvioRestricao = new Vetor2d();
 
     constructor(
         posicao: Vetor2d,
@@ -95,8 +103,9 @@ export class Corpo2d {
     ) {
         this._id = Mundo2d.obterProximoCorpoId();
         this._nome = `corpo${this._id}`;
+        this._posicao.set(posicao);
         for(const forma of formas) {
-            forma.definir(this);
+            forma.definirCorpo(this);
             this._formas.push(forma);
         }
         this.setPosicao(posicao);
@@ -155,9 +164,9 @@ export class Corpo2d {
         }
     }
 
-    public setAngulo(angulo: number) {
+    public setAngulo(angulo: number, desvio: IReadOnlyVetor2d = new Vetor2d()) {
         this._angulo = angulo;
-        this._atualizarFormas();
+        this._atualizarFormas(desvio);
     }
 
     public setPosicao(posicao: IReadOnlyVetor2d) {
@@ -165,9 +174,9 @@ export class Corpo2d {
         this._atualizarFormas();
     }
 
-    private _atualizarFormas() {
+    private _atualizarFormas(desvio: IReadOnlyVetor2d = new Vetor2d()) {
         for(const forma of this._formas) {
-            forma.atualizar(this._posicao, this._angulo);
+            forma.atualizar(this._posicao, this._angulo, desvio);
         }
     }
 
@@ -220,6 +229,7 @@ export class Corpo2d {
     }
 
     verificarDormindo(tempoEscala: number) {
+        if (this._estatico) return;
         const tempoFator = tempoEscala * tempoEscala * tempoEscala;
         const movimento = this._rapidez * this._rapidez + this._rapidezAngular * this._rapidezAngular;
         
@@ -232,7 +242,7 @@ export class Corpo2d {
         
         this._movimento = 0.9 * minMovimento + 0.1*maxMovimento;
 
-        if (this._dormindoContadorLimite > 0 && this._movimento < 0.08 * tempoFator) {
+        if (this._dormindoContadorLimite > 0 && this._movimento < 0.02 * tempoFator) {
             this._dormindoContador += 1;
             if (this._dormindoContador >= this._dormindoContadorLimite) {
                 this.setDormindo(true);
@@ -240,6 +250,42 @@ export class Corpo2d {
         } else if (this._dormindoContador > 0) {
             this._dormindoContador = 0
         }
+    }
+
+    prepararRestricao() {
+        if (this.estatico || (this.restricao.x == 0 && this.restricao.y == 0 && this.restricaoAngulo == 0)) return;
+
+        this.setPosicao(this.posicao.adic(this.restricao));
+        this.setAngulo(this._angulo + this.restricaoAngulo);
+        this._restricao.multV(0.4);
+        this._restricaoAngulo *= 0.4;
+    }
+
+    aplicarRestricao(ponto: IReadOnlyVetor2d, restricao: Restricao2d) {
+        if (this.estatico) return;
+        //this._desvioRestricao.set(ponto);
+        const compartilhado = this.massaInvertida / restricao.massaTotal;
+        this._restricao.subV(restricao.forca.mult(compartilhado));
+        
+        if (restricao.amortecimento) {
+            this.prePosicao.subV(restricao.norma.mult(restricao.amortecimento * restricao.velocidadeNorma * compartilhado));
+        }
+        let torque = (ponto.cross(restricao.forca) / restricao.resistenciaTotal); 
+        torque *= Restricao2d._torqueAmortecimento;
+        torque *= this.inerciaInvertida;
+        torque *= (1 - restricao.rigidezAngular);
+        this._restricaoAngulo -= torque; 
+        
+        //this.setPosicao(this.posicao.adic(ponto));
+        var desvio = new Vetor2d(-ponto.x, -ponto.y);
+        desvio.rotV(this._restricaoAngulo);
+        desvio.adicV(ponto);
+        desvio.adicV(this._posicao.sub(restricao.forca.mult(compartilhado)));
+        
+        var angulo = this.angulo;
+        //this.setAngulo(this._restricaoAngulo, ponto);
+        this.setPosicao(desvio);
+        this.setAngulo(angulo - torque, this.restricao);
     }
 
     resetar() {

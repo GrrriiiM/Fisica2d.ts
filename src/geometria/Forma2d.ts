@@ -13,6 +13,7 @@ export class Forma2d {
     id: number;
     readonly nome: string;
     readonly posicao = new Vetor2d();
+    readonly _desvio = new Vetor2d();
     private angulo = 0;
     readonly vertices: Vertices2d;
     readonly bordas: Bordas2d;
@@ -41,8 +42,11 @@ export class Forma2d {
         return this.ultimoVerticeId += 1;
     }
 
-    definir(corpo: Corpo2d) {
+    definirCorpo(corpo: Corpo2d) {
         this.corpo = corpo;
+        this._desvio.set(this.posicao);
+        this.posicao.set(corpo.posicao);
+        this.vertices.adicV(corpo.posicao);
     }
 
     private _calcularArea(abs: boolean = true) {
@@ -56,11 +60,13 @@ export class Forma2d {
         else return Math.abs(area) / 2;
     }
 
-    atualizar(posicao: Vetor2d, angulo: number) {
+    atualizar(posicao: IReadOnlyVetor2d, angulo: number, desvio: IReadOnlyVetor2d = new Vetor2d()) {
         const rot = angulo - this.angulo;
-        this.vertices.subV(this.posicao).rotV(rot).adicV(posicao);
+        
+        const movimento = posicao.sub(this.posicao);
+        this.vertices.rotV(rot, this.posicao.adic(desvio)).adicV(movimento);
         this.eixos.rot(rot);
-        this.posicao.subV(this.posicao).rotV(rot).adicV(posicao);
+        this.posicao.set(posicao);
         this.bordas.set(this.vertices);
         this.angulo = angulo;
     }

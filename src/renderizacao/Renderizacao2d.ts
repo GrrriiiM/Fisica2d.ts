@@ -20,6 +20,7 @@ export class Renderizacao2d {
     centros: string;
     dormindos: string;
     logCorpos: string[];
+    restricoes: string;
     constructor(mundo: Mundo2d, camera: Camera2d, opcoes: IRenderizacao2dOpcoes) {
         const op  = opcoes ?? {};
         this.formas = this._formasPathD(mundo, camera);
@@ -32,6 +33,7 @@ export class Renderizacao2d {
         this.centros = this._centrosPathD(mundo, camera);
         this.dormindos = this._dormindosPathD(mundo, camera);
         this.logCorpos = this._logCorpo(mundo, op.logCorpos);
+        this.restricoes = this._restricoesPathD(mundo, camera);
     }
 
     private _bordasPathD(mundo: Mundo2d, camera: Camera2d): string {
@@ -157,17 +159,29 @@ export class Renderizacao2d {
         return pathDs.join(" ");
     }
 
+    private _restricoesPathD(mundo: Mundo2d, camera: Camera2d): string {
+        let pathDs = new Array<string>();
+        for(const restricao of mundo.restricoes) {
+            if (camera.bordas.contem(restricao.mundoPontoA) || camera.bordas.contem(restricao.mundoPontoB)) {
+                pathDs.push(`M${restricao.mundoPontoA.x},${restricao.mundoPontoA.y}L${restricao.mundoPontoB.x},${restricao.mundoPontoB.y}`);
+            }
+        }
+        return pathDs.join(" ");
+    }
+
     private _logCorpo(mundo:Mundo2d, nomeCorpos: string[]) {
         let logCorpos = new Array<string>();
         if (nomeCorpos) {
             let vetor2dToString = (v: IReadOnlyVetor2d) => { return `{ x: ${Math.round(v.x*100)/100}, y: ${Math.round(v.y*100)/100} }`}
             for(const nomeCorpo of nomeCorpos) {
                 for(const corpo of mundo.corpos.filter(_ => _.nome == nomeCorpo)) {
+                    logCorpos.push(`nome       : ${corpo.nome}`);
                     logCorpos.push(`posicao    : ${vetor2dToString(corpo.posicao)}`);
                     logCorpos.push(`velocidade : ${vetor2dToString(corpo.velocidade)}`);
                     logCorpos.push(`rapidez    : ${Math.round(corpo.rapidez*100)/100}`);
                     logCorpos.push(`angulo     : ${Math.round(corpo.angulo*100)/100}`);
                     logCorpos.push(`vel. ang.  : ${Math.round(corpo.velocidadeAngular*100)/100}`);
+                    logCorpos.push(`movimento  : ${Math.round(corpo.movimento*100)/100}`);
                     logCorpos.push(`dormindo   : ${corpo.dormindo}`);
                 }
             }

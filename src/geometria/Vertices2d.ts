@@ -42,14 +42,14 @@ export class Vertices2d extends Array<Vertice2d> {
         return vetores;
     }
 
-    rotV(rad: number): Vertices2d {
-        this.forEach(_ => _.rotV(rad));
+    rotV(rad: number, desvio: IReadOnlyVetor2d = new Vetor2d()): Vertices2d {
+        this.forEach(_ => _.rotV(rad, desvio));
         return this;
     }
 
-    rot(rad: number): IReadOnlyVetor2d[] {
+    rot(rad: number, desvio: IReadOnlyVetor2d = new Vetor2d()): IReadOnlyVetor2d[] {
         let vetores = new Array<IReadOnlyVetor2d>();
-        this.forEach(_ => vetores.push(_.rot(rad)));
+        this.forEach(_ => vetores.push(_.rot(rad, desvio)));
         return vetores;
     }
 

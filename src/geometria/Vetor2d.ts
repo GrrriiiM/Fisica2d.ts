@@ -78,16 +78,18 @@ export class Vetor2d implements IReadOnlyVetor2d {
     }
     mult(n: number): IReadOnlyVetor2d { return this.copia.multV(n); }
 
-    rotV(rad: number): Vetor2d {
+    rotV(rad: number, desvio: IReadOnlyVetor2d = new Vetor2d()): Vetor2d {
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
+        this.subV(desvio);
         const x = this._x;
         const y = this._y;
         this._x = x * cos - y * sin;
         this._y = x * sin + y * cos;
+        this.adicV(desvio);
         return this;
     }
-    rot(n: number): IReadOnlyVetor2d { return this.copia.rotV(n); }
+    rot(n: number, desvio: IReadOnlyVetor2d = new Vetor2d()): IReadOnlyVetor2d { return this.copia.rotV(n, desvio); }
 
 
     dot(vetor: IReadOnlyVetor2d): number {
@@ -120,4 +122,6 @@ export interface IReadOnlyVetor2d {
     rot(n: number): IReadOnlyVetor2d;
     dot(v: IReadOnlyVetor2d): number;
     cross(v: IReadOnlyVetor2d): number;
+    magQ: number;
+    mag: number;
 }
