@@ -49,7 +49,7 @@ export class Par2d {
         if (corpoA.dormindo || corpoB.dormindo) {
             const corpoDomindo = (corpoA.dormindo && !corpoA.estatico) ? corpoA : corpoB;
             const corpoMovimento = corpoDomindo == corpoA ? corpoB : corpoA;
-            if (!corpoDomindo.estatico && corpoMovimento.movimento > 0.18 * tempoFator)
+            if (!corpoDomindo.estatico && corpoMovimento.movimento > 0.04 * tempoFator)
                 corpoDomindo.setDormindo(false);
         }
     }

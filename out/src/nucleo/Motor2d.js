@@ -10,6 +10,7 @@ export class Motor2d {
         delta = delta || 1000 / 60;
         correcao = correcao || 1;
         const corpos = this.mundo.corpos;
+        const restricoes = this.mundo.restricoes;
         const areas = this.mundo.areas;
         const pares = Object.values(this.mundo.pares);
         //if (delta>33.33) 
@@ -18,6 +19,8 @@ export class Motor2d {
         this._verificarDormindo(corpos);
         this._aplicarGravidade(corpos);
         this._atualizarCorpos(corpos, delta, correcao);
+        this._prepararRestricoes(corpos);
+        this._resolverRestricoes(this.tempoEscala, restricoes);
         this._atualizarAreas(corpos, areas);
         this._atualizarPares(areas, this.mundo.pares);
         this._detectarColisoes(pares);
@@ -25,6 +28,8 @@ export class Motor2d {
         this._atualizarDormindoColisoes(pares);
         this._resolverPosicao(pares, this.tempoEscala);
         this._resolverImpulso(corpos);
+        this._prepararRestricoes(corpos);
+        this._resolverRestricoes(this.tempoEscala, restricoes);
         this._prepararResolucaoColisao(pares);
         this._resolverColisao(pares, this.tempoEscala);
         this._resetar(corpos);
@@ -33,6 +38,18 @@ export class Motor2d {
         for (let corpo of corpos) {
             if (!corpo.estatico && !corpo.dormindo) {
                 corpo.adicionarForca(this.mundo.gravidade.mult(corpo.massa * this.mundo.gravidadeEscala));
+            }
+        }
+    }
+    _prepararRestricoes(corpos) {
+        for (let corpo of corpos) {
+            corpo.prepararRestricao();
+        }
+    }
+    _resolverRestricoes(tempoEscala, restricoes) {
+        for (let i = 0; i < 2; i++) {
+            for (let restricao of restricoes) {
+                restricao.resolver(tempoEscala);
             }
         }
     }

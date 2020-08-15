@@ -22,9 +22,11 @@ export class Forma2d {
     obterProximoVerticeId() {
         return this.ultimoVerticeId += 1;
     }
-    definir(corpo, posicao) {
+    definirCorpo(corpo) {
         this.corpo = corpo;
-        this._desvio.set(posicao.sub(this.posicao));
+        this._desvio.set(this.posicao);
+        this.posicao.set(corpo.posicao);
+        this.vertices.adicV(corpo.posicao);
     }
     _calcularArea(abs = true) {
         let area = 0;
@@ -36,12 +38,12 @@ export class Forma2d {
         else
             return Math.abs(area) / 2;
     }
-    atualizar(posicao, angulo) {
+    atualizar(posicao, angulo, desvio = new Vetor2d()) {
         const rot = angulo - this.angulo;
-        this._desvio.rotV(rot);
-        this.vertices.subV(this.posicao).rotV(rot).adicV(posicao.adic(this._desvio));
+        const movimento = posicao.sub(this.posicao);
+        this.vertices.rotV(rot, this.posicao.adic(desvio)).adicV(movimento);
         this.eixos.rot(rot);
-        this.posicao.subV(this.posicao).rotV(rot).adicV(posicao.adic(this._desvio));
+        this.posicao.set(posicao);
         this.bordas.set(this.vertices);
         this.angulo = angulo;
     }

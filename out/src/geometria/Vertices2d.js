@@ -29,13 +29,13 @@ export class Vertices2d extends Array {
         this.forEach(_ => vetores.push(_.sub(vetor)));
         return vetores;
     }
-    rotV(rad) {
-        this.forEach(_ => _.rotV(rad));
+    rotV(rad, desvio = new Vetor2d()) {
+        this.forEach(_ => _.rotV(rad, desvio));
         return this;
     }
-    rot(rad) {
+    rot(rad, desvio = new Vetor2d()) {
         let vetores = new Array();
-        this.forEach(_ => vetores.push(_.rot(rad)));
+        this.forEach(_ => vetores.push(_.rot(rad, desvio)));
         return vetores;
     }
     proximo(vertice) {

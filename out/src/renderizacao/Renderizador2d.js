@@ -1,5 +1,5 @@
 import { Camera2d } from "./Camera2d.js";
-export class Canvas2d {
+export class Renderizador2d {
     constructor(processador, opcoes) {
         var _a, _b, _c, _d;
         this.processador = processador;
@@ -31,6 +31,9 @@ export class Canvas2d {
         this.camera = new Camera2d(this.largura, this.altura);
         this.executar.bind(this);
     }
+    adicionarLogCorpo(nome) {
+        this.logCorpos.push(nome);
+    }
     iniciar() {
         this.executando = true;
         this.executar(0);
@@ -52,6 +55,7 @@ export class Canvas2d {
         this.renderizarBordas(renderizacao.bordas);
         this.renderizarEixos(renderizacao.eixos);
         this.renderizarEixoPrincipal(renderizacao.eixo);
+        this.renderizarRestricoes(renderizacao.restricoes);
         this.renderizarFormas(renderizacao.formas);
         this.renderizarContatos(renderizacao.contatos);
         this.renderizarVelocidades(renderizacao.velocidades);
@@ -101,6 +105,10 @@ export class Canvas2d {
     renderizarDormindos(pathD) {
         this._context.fillStyle = "orange";
         this._context.fill(new Path2D(pathD));
+    }
+    renderizarRestricoes(pathD) {
+        this._context.strokeStyle = "yellow";
+        this._context.stroke(new Path2D(pathD));
     }
     renderizarFps(fps) {
         let fpsText = `fps: ${Math.round(fps)}`;

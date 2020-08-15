@@ -5,26 +5,32 @@ import { Processador2d } from "../../src/nucleo/Processador2d";
 import { Renderizador2d } from "../../src/renderizacao/Renderizador2d";
 import { Construtor2d } from "../../src/geometria/Construtor2d";
 import { Eventos2d } from "../../src/nucleo/Eventos2d";
+import { Restricao2d } from "../../src/objetos/Restricao2d";
 
 const mundo = new Mundo2d(1000, 600, { gravidade: new Vetor2d(0, 0.1), paredes: [true] });
 const eventos = new Eventos2d();
 const motor = new Motor2d(mundo, eventos);
 const processador = new Processador2d(motor);
-const canvas = new Renderizador2d(processador, { largura: mundo.largura, altura: mundo.altura, logCorpos: ["bola"] });
+const renderizador = new Renderizador2d(processador, { largura: mundo.largura, altura: mundo.altura });
 
-canvas.moverCamera(0, 0);
+const corpo1 = Construtor2d.Corpo(160, 100, [Construtor2d.Circulo(40)], { nome:"bola", restituicao: 1, densidade: 5 });
+const corpo2 = Construtor2d.Corpo(600, 425, [Construtor2d.Retangulo(100, 300)]);
+
+const restricao1 = new Restricao2d({ corpoA: corpo1, pontoA: new Vetor2d(40, 0), pontoB: new Vetor2d(500, 100), tamanho: 300, amortecimento: 0, rigidezAngular: 0, rigidez: 1 })
+
+mundo.adicionarCorpo(corpo1);
+// mundo.adicionarCorpo(corpo2);
+mundo.adicionarRestricao(restricao1);
+
+renderizador.adicionarLogCorpo(corpo1.nome);
+
 
 const tamanhoCaixa = 20;
 for(let i=0;i<4;i++) {
     for(let j=0;j<25;j++) {
-        mundo.adicionarCorpo(Construtor2d.Corpo(400+(tamanhoCaixa*i), ((575-(tamanhoCaixa/2)) - (tamanhoCaixa*j)), [Construtor2d.Quadrado(tamanhoCaixa)], { dormindo: true, nome: "caixa" }));
+        mundo.adicionarCorpo(Construtor2d.Corpo(600+(tamanhoCaixa*i), ((575-(tamanhoCaixa/2)) - (tamanhoCaixa*j)), [Construtor2d.Quadrado(tamanhoCaixa)], { dormindo: true, nome: "caixa" }));
     }
 }
-
-mundo.adicionarCorpo(Construtor2d.Corpo(900, 100, [Construtor2d.Circulo(60)], { densidade: 0.1, nome: "bola" }));
-
-mundo.adicionarCorpo(Construtor2d.Corpo(875, 408, [Construtor2d.TrianguloReto(300, 500, true)], { estatico: true }));
-mundo.adicionarCorpo(Construtor2d.Corpo(808, 475, [Construtor2d.TrianguloReto(500, 300, true)], { estatico: true }));
 
 let caixasAtivas = false;
 eventos.onColisaoIniciada = (m, c) => {
@@ -42,7 +48,7 @@ eventos.onColisaoIniciada = (m, c) => {
     }
 }
 
-canvas.iniciar();
+renderizador.iniciar();
 
 
 

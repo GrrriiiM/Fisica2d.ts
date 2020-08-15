@@ -65,16 +65,18 @@ export class Vetor2d {
         return this;
     }
     mult(n) { return this.copia.multV(n); }
-    rotV(rad) {
+    rotV(rad, desvio = new Vetor2d()) {
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
+        this.subV(desvio);
         const x = this._x;
         const y = this._y;
         this._x = x * cos - y * sin;
         this._y = x * sin + y * cos;
+        this.adicV(desvio);
         return this;
     }
-    rot(n) { return this.copia.rotV(n); }
+    rot(n, desvio = new Vetor2d()) { return this.copia.rotV(n, desvio); }
     dot(vetor) {
         return this.x * vetor.x + this.y * vetor.y;
     }

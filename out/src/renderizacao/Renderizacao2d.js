@@ -11,6 +11,7 @@ export class Renderizacao2d {
         this.centros = this._centrosPathD(mundo, camera);
         this.dormindos = this._dormindosPathD(mundo, camera);
         this.logCorpos = this._logCorpo(mundo, op.logCorpos);
+        this.restricoes = this._restricoesPathD(mundo, camera);
     }
     _bordasPathD(mundo, camera) {
         let pathDs = new Array();
@@ -118,12 +119,22 @@ export class Renderizacao2d {
         }
         return pathDs.join(" ");
     }
+    _restricoesPathD(mundo, camera) {
+        let pathDs = new Array();
+        for (const restricao of mundo.restricoes) {
+            if (camera.bordas.contem(restricao.mundoPontoA) || camera.bordas.contem(restricao.mundoPontoB)) {
+                pathDs.push(`M${restricao.mundoPontoA.x},${restricao.mundoPontoA.y}L${restricao.mundoPontoB.x},${restricao.mundoPontoB.y}`);
+            }
+        }
+        return pathDs.join(" ");
+    }
     _logCorpo(mundo, nomeCorpos) {
         let logCorpos = new Array();
         if (nomeCorpos) {
             let vetor2dToString = (v) => { return `{ x: ${Math.round(v.x * 100) / 100}, y: ${Math.round(v.y * 100) / 100} }`; };
             for (const nomeCorpo of nomeCorpos) {
                 for (const corpo of mundo.corpos.filter(_ => _.nome == nomeCorpo)) {
+                    logCorpos.push(`nome       : ${corpo.nome}`);
                     logCorpos.push(`posicao    : ${vetor2dToString(corpo.posicao)}`);
                     logCorpos.push(`velocidade : ${vetor2dToString(corpo.velocidade)}`);
                     logCorpos.push(`rapidez    : ${Math.round(corpo.rapidez * 100) / 100}`);

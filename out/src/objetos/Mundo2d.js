@@ -7,6 +7,7 @@ export class Mundo2d {
         this.largura = largura;
         this.altura = altura;
         this._corpos = new Array();
+        this._restricoes = new Array();
         this.gravidade = new Vetor2d();
         this.gravidadeEscala = 1;
         this.tamanhoArea = 48;
@@ -24,22 +25,27 @@ export class Mundo2d {
         this._criarAreas(this.tamanhoArea);
     }
     get corpos() { return this._corpos; }
+    get restricoes() { return this._restricoes; }
     adicionarCorpo(corpo) {
         this._corpos.push(corpo);
         return corpo;
     }
+    adicionarRestricao(restricao) {
+        this._restricoes.push(restricao);
+        return restricao;
+    }
     _adicionarParedes(esquerda, baixo, direita, cima, friccao) {
         if (esquerda) {
-            this.adicionarCorpo(Construtor2d.Retangulo(this.largura, this.altura / 2, 50, this.altura, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(this.largura, this.altura / 2, [Construtor2d.Retangulo(50, this.altura)], { estatico: true, friccao: friccao }));
         }
         if (baixo) {
-            this.adicionarCorpo(Construtor2d.Retangulo(this.largura / 2, this.altura, this.largura, 50, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(this.largura / 2, this.altura, [Construtor2d.Retangulo(this.largura, 50)], { estatico: true, friccao: friccao }));
         }
         if (direita) {
-            this.adicionarCorpo(Construtor2d.Retangulo(0, this.altura / 2, 50, this.altura, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(0, this.altura / 2, [Construtor2d.Retangulo(50, this.altura)], { estatico: true, friccao: friccao }));
         }
         if (cima) {
-            this.adicionarCorpo(Construtor2d.Retangulo(this.largura / 2, 0, this.largura, 50, { estatico: true, friccao: friccao }));
+            this.adicionarCorpo(Construtor2d.Corpo(this.largura / 2, 0, [Construtor2d.Retangulo(this.largura, 50)], { estatico: true, friccao: friccao }));
         }
     }
     _criarAreas(tamanhoArea) {
