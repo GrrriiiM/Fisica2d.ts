@@ -7,5 +7,8 @@ export class Processador2d {
         this.motor.executar(tempo, 1, frameId);
         return new Renderizacao2d(this.motor.mundo, camera, opcoes);
     }
+    atualizarMouse(x, y, click1, click2) {
+        this.motor.mundo.atualizarMouse(x, y, click1, click2);
+    }
 }
 //# sourceMappingURL=Processador2d.js.map

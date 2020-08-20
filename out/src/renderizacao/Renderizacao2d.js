@@ -12,6 +12,8 @@ export class Renderizacao2d {
         this.dormindos = this._dormindosPathD(mundo, camera);
         this.logCorpos = this._logCorpo(mundo, op.logCorpos);
         this.restricoes = this._restricoesPathD(mundo, camera);
+        this.mouse = this._mousePathD(mundo, camera);
+        this.corpoSelecionado = this._corpoSelecionadoPathD(mundo, camera);
     }
     _bordasPathD(mundo, camera) {
         let pathDs = new Array();
@@ -82,7 +84,7 @@ export class Renderizacao2d {
             for (const contato of par.colisao.contatos) {
                 if (camera.bordas.contem(contato)) {
                     let vetor = contato.adic(camera.ajuste);
-                    pathDs.push(this._desenharQuadrado(vetor, 8));
+                    pathDs.push(this._desenharCirculo(vetor, 4));
                 }
             }
         }
@@ -104,7 +106,7 @@ export class Renderizacao2d {
         for (const corpo of mundo.corpos.filter(_ => !_.dormindo)) {
             if (camera.bordas.contem(corpo.posicao)) {
                 const posicao = corpo.posicao.adic(camera.ajuste);
-                pathDs.push(this._desenharQuadrado(posicao, 5));
+                pathDs.push(this._desenharCirculo(posicao, 3));
             }
         }
         return pathDs.join(" ");
@@ -114,7 +116,7 @@ export class Renderizacao2d {
         for (const corpo of mundo.corpos.filter(_ => _.dormindo)) {
             if (camera.bordas.contem(corpo.posicao)) {
                 const posicao = corpo.posicao.adic(camera.ajuste);
-                pathDs.push(this._desenharQuadrado(posicao, 5));
+                pathDs.push(this._desenharCirculo(posicao, 3));
             }
         }
         return pathDs.join(" ");
@@ -124,6 +126,23 @@ export class Renderizacao2d {
         for (const restricao of mundo.restricoes) {
             if (camera.bordas.contem(restricao.mundoPontoA) || camera.bordas.contem(restricao.mundoPontoB)) {
                 pathDs.push(`M${restricao.mundoPontoA.x},${restricao.mundoPontoA.y}L${restricao.mundoPontoB.x},${restricao.mundoPontoB.y}`);
+            }
+        }
+        return pathDs.join(" ");
+    }
+    _mousePathD(mundo, camera) {
+        if (camera.bordas.contem(mundo.mouse.posicao)) {
+            return this._desenharCirculo(mundo.mouse.posicao, 6);
+        }
+    }
+    _corpoSelecionadoPathD(mundo, camera) {
+        let pathDs = new Array();
+        if (mundo.mouse.corpo) {
+            for (const forma of mundo.mouse.corpo.formas) {
+                if (forma.bordas.sobrepoem(camera.bordas)) {
+                    const vertices = forma.vertices.adic(camera.ajuste);
+                    pathDs.push(`${vertices.reduce((a, c, i) => a += `${i == 0 ? "M" : "L"}${c.x},${c.y}`, "")}Z`);
+                }
             }
         }
         return pathDs.join(" ");
@@ -149,6 +168,9 @@ export class Renderizacao2d {
     }
     _desenharQuadrado(vetor, tamanho) {
         return `M${vetor.x - tamanho / 2},${vetor.y - tamanho / 2}L${vetor.x + tamanho / 2},${vetor.y - tamanho / 2}L${vetor.x + tamanho / 2},${vetor.y + tamanho / 2}L${vetor.x - tamanho / 2},${vetor.y + tamanho / 2}Z`;
+    }
+    _desenharCirculo(vetor, raio) {
+        return `M${vetor.x},${vetor.y},m-${raio},0a${raio},${raio} 0 1,0 ${raio * 2},0a${raio},${raio} 0 1,0 -${raio * 2},0`;
     }
 }
 //# sourceMappingURL=Renderizacao2d.js.map

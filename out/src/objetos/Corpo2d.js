@@ -29,7 +29,7 @@ export class Corpo2d {
         this._sensor = false;
         this._dormindo = false;
         this._dormindoContador = 0;
-        this._dormindoContadorLimite = 120;
+        this._dormindoContadorLimite = 180;
         this._tempoEscala = 1;
         this._estatico = false;
         this._massaNaoEstatico = 0;
@@ -76,7 +76,7 @@ export class Corpo2d {
     get restricao() { return this._restricao; }
     get restricaoAngulo() { return this._restricaoAngulo; }
     setOpcoes(opcoes) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         const op = opcoes !== null && opcoes !== void 0 ? opcoes : {};
         this.setAngulo((_a = op.angulo) !== null && _a !== void 0 ? _a : this._angulo);
         this.setDensidade((_b = op.densidade) !== null && _b !== void 0 ? _b : this._densidade);
@@ -86,7 +86,9 @@ export class Corpo2d {
         this._friccao = (_f = op.friccao) !== null && _f !== void 0 ? _f : this._friccao;
         this._friccaoEstatica = (_g = op.friccaoEstatica) !== null && _g !== void 0 ? _g : this._friccaoEstatica;
         this._despejo = (_h = op.despejo) !== null && _h !== void 0 ? _h : this._despejo;
-        this._nome = (_j = op.nome) !== null && _j !== void 0 ? _j : this._nome;
+        this._friccaoAr = (_j = op.fricicaoAr) !== null && _j !== void 0 ? _j : this._friccaoAr;
+        this._inercia = (_k = op.inercia) !== null && _k !== void 0 ? _k : this._inercia;
+        this._nome = (_l = op.nome) !== null && _l !== void 0 ? _l : this._nome;
     }
     setDensidade(densidade) {
         this._densidade = densidade;

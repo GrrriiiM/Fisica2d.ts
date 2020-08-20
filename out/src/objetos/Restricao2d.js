@@ -1,7 +1,8 @@
 import { Vetor2d } from "../geometria/Vetor2d.js";
+import { Mundo2d } from "./Mundo2d.js";
 export class Restricao2d {
     constructor(opcoes = {}) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         this.pontoA = new Vetor2d(0, 0);
         this.pontoB = new Vetor2d(0, 0);
         this._velocidadeNorma = 0;
@@ -9,16 +10,18 @@ export class Restricao2d {
         this._forca = new Vetor2d();
         this._norma = new Vetor2d();
         const op = opcoes !== null && opcoes !== void 0 ? opcoes : {};
-        this.pontoA.set(op.pontoA);
-        this.pontoB.set(op.pontoB);
+        this.id = Mundo2d.obterProximoCorpoId();
+        this.nome = (_a = op.nome) !== null && _a !== void 0 ? _a : `restricao${Mundo2d.obterProximoCorpoId}`;
+        this.pontoA.set((_b = op.pontoA) !== null && _b !== void 0 ? _b : new Vetor2d());
+        this.pontoB.set((_c = op.pontoB) !== null && _c !== void 0 ? _c : new Vetor2d());
         this.corpoA = op.corpoA;
         this.corpoB = op.corpoB;
-        this._anguloA = this.corpoA ? this.corpoA.angulo : ((_a = op.anguloA) !== null && _a !== void 0 ? _a : 0);
-        this._anguloB = this.corpoB ? this.corpoB.angulo : ((_b = op.anguloB) !== null && _b !== void 0 ? _b : 0);
-        this.tamanho = (_c = op.tamanho) !== null && _c !== void 0 ? _c : 0;
-        this.rigidez = (_d = op.rigidez) !== null && _d !== void 0 ? _d : (this.tamanho > 0 ? 1 : 0.7);
-        this.rigidezAngular = (_e = op.rigidezAngular) !== null && _e !== void 0 ? _e : 0;
-        this.amortecimento = (_f = op.amortecimento) !== null && _f !== void 0 ? _f : 0;
+        this._anguloA = this.corpoA ? this.corpoA.angulo : ((_d = op.anguloA) !== null && _d !== void 0 ? _d : 0);
+        this._anguloB = this.corpoB ? this.corpoB.angulo : ((_e = op.anguloB) !== null && _e !== void 0 ? _e : 0);
+        this.tamanho = (_f = op.tamanho) !== null && _f !== void 0 ? _f : 0;
+        this.rigidez = (_g = op.rigidez) !== null && _g !== void 0 ? _g : (this.tamanho > 0 ? 1 : 0.7);
+        this.rigidezAngular = (_h = op.rigidezAngular) !== null && _h !== void 0 ? _h : 0;
+        this.amortecimento = (_j = op.amortecimento) !== null && _j !== void 0 ? _j : 0;
     }
     get massaTotal() { return this._massaTotal; }
     get velocidadeNorma() { return this._velocidadeNorma; }

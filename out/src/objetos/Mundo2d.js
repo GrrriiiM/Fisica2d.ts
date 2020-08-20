@@ -1,6 +1,9 @@
+import { Corpo2d } from "./Corpo2d.js";
 import { Vetor2d } from "../geometria/Vetor2d.js";
 import { Construtor2d } from "../geometria/Construtor2d.js";
 import { Area2d } from "../colisao/Area2d.js";
+import { Restricao2d } from "./Restricao2d.js";
+import { Mouse2d } from "./Mouse2d.js";
 export class Mundo2d {
     constructor(largura, altura, opcoes) {
         var _a;
@@ -13,6 +16,7 @@ export class Mundo2d {
         this.tamanhoArea = 48;
         this.areas = new Array();
         this.pares = {};
+        this.mouse = new Mouse2d();
         const op = opcoes !== null && opcoes !== void 0 ? opcoes : {};
         this._corpos = (_a = op.corpos) !== null && _a !== void 0 ? _a : new Array();
         this.gravidade.set(op.gravidade || this.gravidade);
@@ -26,13 +30,31 @@ export class Mundo2d {
     }
     get corpos() { return this._corpos; }
     get restricoes() { return this._restricoes; }
-    adicionarCorpo(corpo) {
+    adicionarCorpo(arg1, arg2, arg3, arg4) {
+        if (arg1 instanceof Corpo2d)
+            return this._adicionarCorpo1(arg1);
+        else
+            return this._adicionarCorpo2(arg1, arg2, arg3, arg4);
+    }
+    _adicionarCorpo1(corpo) {
         this._corpos.push(corpo);
         return corpo;
     }
-    adicionarRestricao(restricao) {
+    _adicionarCorpo2(x, y, formas, opcoes) {
+        return this._adicionarCorpo1(Construtor2d.Corpo(x, y, formas, opcoes));
+    }
+    adicionarRestricao(arg1) {
+        if (arg1 instanceof Restricao2d)
+            return this._adicionarRestricao1(arg1);
+        else
+            return this._adicionarRestricao2(arg1);
+    }
+    _adicionarRestricao1(restricao) {
         this._restricoes.push(restricao);
         return restricao;
+    }
+    _adicionarRestricao2(opcoes) {
+        return this._adicionarRestricao1(new Restricao2d(opcoes));
     }
     _adicionarParedes(esquerda, baixo, direita, cima, friccao) {
         if (esquerda) {
@@ -57,6 +79,45 @@ export class Mundo2d {
                 this.areas.push(new Area2d(l, c, tamanhoArea));
             }
         }
+    }
+    atualizarMouse(x, y, click1, click2) {
+        this.mouse.set(x, y);
+        let restricao = this.restricoes.find(_ => _.nome == "___mouse1");
+        if (restricao) {
+            if (click1 && this.mouse.corpo) {
+                this.mouse.corpo.setDormindo(false);
+                restricao.pontoB.set(x, y);
+                return;
+            }
+            else {
+                this._restricoes.splice(this._restricoes.indexOf(restricao));
+            }
+        }
+        for (let corpo of this.corpos) {
+            if (!corpo.estatico) {
+                for (let forma of corpo.formas) {
+                    if (forma.vertices.contem(this.mouse.posicao)) {
+                        this.mouse.corpo = corpo;
+                        if (click1) {
+                            corpo.setDormindo(false);
+                            let ponto = this.mouse.posicao.sub(this.mouse.corpo.posicao);
+                            restricao = new Restricao2d({
+                                nome: "___mouse1",
+                                corpoA: this.mouse.corpo,
+                                pontoA: ponto,
+                                pontoB: this.mouse.posicao,
+                                tamanho: 0.01,
+                                rigidez: 0.1,
+                                rigidezAngular: 1
+                            });
+                            this._restricoes.push(restricao);
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+        this.mouse.corpo = null;
     }
     static obterProximoCorpoId() {
         this._ultimoCorpoId += 1;
