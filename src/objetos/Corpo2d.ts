@@ -14,7 +14,9 @@ export interface ICorpo2dOpcoes{
     restituicao?: number,
     friccao?: number,
     friccaoEstatica?: number,
-    despejo?: number
+    fricicaoAr?: number,
+    despejo?: number,
+    inercia?: number
 }
 
 export class Corpo2d {
@@ -81,7 +83,7 @@ export class Corpo2d {
     private _dormindo = false;
     get dormindo() { return this._dormindo; }
     private _dormindoContador = 0;
-    readonly _dormindoContadorLimite = 120;
+    readonly _dormindoContadorLimite = 180;
     
     private _tempoEscala = 1;
 
@@ -124,6 +126,8 @@ export class Corpo2d {
         this._friccao = op.friccao ?? this._friccao;
         this._friccaoEstatica = op.friccaoEstatica ?? this._friccaoEstatica;
         this._despejo = op.despejo ?? this._despejo;
+        this._friccaoAr = op.fricicaoAr ?? this._friccaoAr;
+        this._inercia = op.inercia ?? this._inercia;
         this._nome = op.nome ?? this._nome;
     }
 
@@ -140,6 +144,8 @@ export class Corpo2d {
             this._inercia = this._inerciaNaoEstatico;
         }
     }
+
+
 
     public setEstatico(estatico: boolean) {
         this._estatico = estatico;

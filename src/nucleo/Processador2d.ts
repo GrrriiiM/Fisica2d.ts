@@ -14,5 +14,9 @@ export class Processador2d implements IProcessador2d {
         return new Renderizacao2d(this.motor.mundo, camera, opcoes);
     }
 
+    atualizarMouse(x: number, y: number, click1: boolean, click2: boolean) {
+        this.motor.mundo.atualizarMouse(x, y, click1, click2);
+    }
+
     
 }

@@ -21,6 +21,8 @@ export class Renderizacao2d {
     dormindos: string;
     logCorpos: string[];
     restricoes: string;
+    mouse: string;
+    corpoSelecionado: string;
     constructor(mundo: Mundo2d, camera: Camera2d, opcoes: IRenderizacao2dOpcoes) {
         const op  = opcoes ?? {};
         this.formas = this._formasPathD(mundo, camera);
@@ -34,6 +36,8 @@ export class Renderizacao2d {
         this.dormindos = this._dormindosPathD(mundo, camera);
         this.logCorpos = this._logCorpo(mundo, op.logCorpos);
         this.restricoes = this._restricoesPathD(mundo, camera);
+        this.mouse = this._mousePathD(mundo, camera);
+        this.corpoSelecionado = this._corpoSelecionadoPathD(mundo, camera);
     }
 
     private _bordasPathD(mundo: Mundo2d, camera: Camera2d): string {
@@ -115,7 +119,7 @@ export class Renderizacao2d {
             for(const contato of (<Par2d>par).colisao.contatos) {
                 if (camera.bordas.contem(contato)) {
                     let vetor = contato.adic(camera.ajuste);
-                    pathDs.push(this._desenharQuadrado(vetor, 8));
+                    pathDs.push(this._desenharCirculo(vetor, 4));
                 }
             }
         }
@@ -142,7 +146,7 @@ export class Renderizacao2d {
         for(const corpo of mundo.corpos.filter(_ => !_.dormindo)) {
             if (camera.bordas.contem(corpo.posicao)) {
                 const posicao = corpo.posicao.adic(camera.ajuste);
-                pathDs.push(this._desenharQuadrado(posicao, 5));
+                pathDs.push(this._desenharCirculo(posicao, 3));
             }
         }
         return pathDs.join(" ");
@@ -153,7 +157,7 @@ export class Renderizacao2d {
         for(const corpo of mundo.corpos.filter(_ => _.dormindo)) {
             if (camera.bordas.contem(corpo.posicao)) {
                 const posicao = corpo.posicao.adic(camera.ajuste);
-                pathDs.push(this._desenharQuadrado(posicao, 5));
+                pathDs.push(this._desenharCirculo(posicao, 3));
             }
         }
         return pathDs.join(" ");
@@ -164,6 +168,25 @@ export class Renderizacao2d {
         for(const restricao of mundo.restricoes) {
             if (camera.bordas.contem(restricao.mundoPontoA) || camera.bordas.contem(restricao.mundoPontoB)) {
                 pathDs.push(`M${restricao.mundoPontoA.x},${restricao.mundoPontoA.y}L${restricao.mundoPontoB.x},${restricao.mundoPontoB.y}`);
+            }
+        }
+        return pathDs.join(" ");
+    }
+
+    private _mousePathD(mundo: Mundo2d, camera: Camera2d): string {
+        if (camera.bordas.contem(mundo.mouse.posicao)) {
+            return this._desenharCirculo(mundo.mouse.posicao, 6);
+        }
+    }
+
+    private _corpoSelecionadoPathD(mundo: Mundo2d, camera: Camera2d): string {
+        let pathDs = new Array<string>();
+        if(mundo.mouse.corpo) {
+            for(const forma of mundo.mouse.corpo.formas) {
+                if (forma.bordas.sobrepoem(camera.bordas)) {
+                    const vertices = forma.vertices.adic(camera.ajuste);
+                    pathDs.push(`${vertices.reduce((a,c, i) => a+=`${i==0?"M":"L"}${c.x},${c.y}`, "")}Z`);
+                }
             }
         }
         return pathDs.join(" ");
@@ -192,5 +215,9 @@ export class Renderizacao2d {
 
     private _desenharQuadrado(vetor:IReadOnlyVetor2d, tamanho: number): string {
         return `M${vetor.x-tamanho/2},${vetor.y-tamanho/2}L${vetor.x+tamanho/2},${vetor.y-tamanho/2}L${vetor.x+tamanho/2},${vetor.y+tamanho/2}L${vetor.x-tamanho/2},${vetor.y+tamanho/2}Z`
+    }
+
+    private _desenharCirculo(vetor:IReadOnlyVetor2d, raio: number): string {
+        return `M${vetor.x},${vetor.y},m-${raio},0a${raio},${raio} 0 1,0 ${raio*2},0a${raio},${raio} 0 1,0 -${raio*2},0`
     }
 }

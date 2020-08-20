@@ -8,7 +8,9 @@ export interface IRenderizadorOpcoes {
     elementoQuerySelector?: string,
     largura?: number,
     altura?: number,
-    logCorpos?: string[]
+    logCorpos?: string[],
+    onKeypress?: (self: Renderizador2d) => void,
+    debug?: boolean
 }
 
 export class Renderizador2d {
@@ -17,12 +19,15 @@ export class Renderizador2d {
     readonly altura: number = 500;
     readonly logCorpos = new Array<string>();
     private frameId = 0;
-    private executando = false;
+    private _executando = false;
+    get executando() { return this._executando; }
     private tempoFrame = 0;
     private tempoTotal = 0;
     private readonly _context: CanvasRenderingContext2D;
     private readonly camera: Camera2d;
     private requisitarFrame: (callback: FrameRequestCallback) => number;
+    readonly onKeypress: (self: Renderizador2d, ev: KeyboardEvent) => void;
+    public debug: boolean = false;
     constructor(
         readonly processador: IProcessador2d,
         opcoes?: IRenderizadorOpcoes
@@ -32,12 +37,17 @@ export class Renderizador2d {
         this.largura = op.largura ?? this.largura;
         this.altura = op.altura ?? this.altura;
         this.logCorpos = op.logCorpos ?? this.logCorpos;
+        this.onKeypress = op.onKeypress;
+        this.debug = op.debug ?? false;
         let element = document.querySelector(this.elementoHtml);
         let canvas = document.createElement("canvas");
         this._context = canvas.getContext("2d");
         canvas.height = this.altura;
         canvas.width = this.largura;
         element.appendChild(canvas);
+        
+        element.addEventListener("keypress", (ev) => this._onKeypress(<KeyboardEvent>ev));
+        element.addEventListener("mousemove", (ev) => this._onMousemove(<MouseEvent>ev));
 
         if (typeof window !== 'undefined') {
             if (window.requestAnimationFrame) this.requisitarFrame = (render) => window.requestAnimationFrame(render)
@@ -56,37 +66,66 @@ export class Renderizador2d {
     }
 
     iniciar() {
-        this.executando = true;
+        this._executando = true;
         this.executar(0);
     }
 
-    executar(tempo) {
+    executar(tempo: number) {
         this.tempoFrame = tempo - this.tempoTotal;
         this.tempoTotal = tempo;
-        if (this.executando) {
+        if (this._executando) {
             this.renderizar(this.processador.requisitarFrame(this.tempoFrame, this.camera, this.frameId, { logCorpos: this.logCorpos }));
             this.frameId = this.requisitarFrame(this.executar.bind(this));
         }
+    }
+
+    parar() {
+        this._executando = false;
     }
 
     moverCamera(x: number, y: number) {
         this.camera.mover(x, y);
     }
 
+    private _onKeypress(ev: KeyboardEvent) {
+        if (ev.key == "'") 
+            if (this._executando) this.parar(); else this.iniciar();
+
+        if (ev.key == "=") {
+            this.parar();
+            this.iniciar();
+            this.parar();
+        }
+
+        if (ev.key == "-") {
+            this.debug = !this.debug;
+        }
+
+        this.onKeypress && this.onKeypress(this, ev);
+    }
+
+    private _onMousemove(ev: MouseEvent) {
+        this.processador.atualizarMouse(ev.x, ev.y, ev.buttons==1, ev.buttons==2);
+    }
+
     renderizar(renderizacao: Renderizacao2d) {
         this.renderizarFundo();
-        this.renderizarAreas(renderizacao.areas);
-        this.renderizarBordas(renderizacao.bordas);
-        this.renderizarEixos(renderizacao.eixos);
-        this.renderizarEixoPrincipal(renderizacao.eixo);
+        this.debug && this.renderizarCorpoSelecionado(renderizacao.corpoSelecionado);
+        this.debug && this.renderizarAreas(renderizacao.areas);
+        this.debug && this.renderizarBordas(renderizacao.bordas);
+        this.debug && this.renderizarEixos(renderizacao.eixos);
+        this.debug && this.renderizarEixoPrincipal(renderizacao.eixo);
         this.renderizarRestricoes(renderizacao.restricoes);
         this.renderizarFormas(renderizacao.formas);
-        this.renderizarContatos(renderizacao.contatos);
-        this.renderizarVelocidades(renderizacao.velocidades);
-        this.renderizarCentros(renderizacao.centros);
-        this.renderizarDormindos(renderizacao.dormindos);
-        this.renderizarFps(1000/this.tempoFrame);
-        this.renderizarLog(renderizacao.logCorpos);
+        this.debug && this.renderizarContatos(renderizacao.contatos);
+        this.debug && this.renderizarVelocidades(renderizacao.velocidades);
+        this.debug && this.renderizarCentros(renderizacao.centros);
+        this.debug && this.renderizarDormindos(renderizacao.dormindos);
+        this.debug && 
+        this.debug && this.renderizarMouse(renderizacao.mouse);
+        this.debug && this.renderizarFps(1000/this.tempoFrame);
+        this.debug && this.renderizarLog(renderizacao.logCorpos);
+        
     }
 
     renderizarFundo() {
@@ -146,9 +185,19 @@ export class Renderizador2d {
         this._context.stroke(new Path2D(pathD));
     }
 
+    renderizarMouse(pathD: string) {
+        this._context.fillStyle = "orange";
+        this._context.fill(new Path2D(pathD));
+    }
+
+    renderizarCorpoSelecionado(pathD: string) {
+        this._context.fillStyle = "#202020";
+        this._context.fill(new Path2D(pathD));
+    }
+
 
     renderizarFps(fps: number) {
-        let fpsText = `fps: ${Math.round(fps)}`;
+        let fpsText = `frame: ${this.frameId} fps: ${Math.round(fps)}`;
         this._context.font = "18px Consolas";
         let fpsMeasureText = this._context.measureText(fpsText).width;
 

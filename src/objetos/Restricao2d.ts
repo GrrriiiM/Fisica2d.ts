@@ -1,8 +1,10 @@
 import { Corpo2d } from "./Corpo2d";
 import { IReadOnlyVetor2d, Vetor2d } from "../geometria/Vetor2d";
 import { IRenderizacao2dOpcoes } from "../renderizacao/Renderizacao2d";
+import { Mundo2d } from "./Mundo2d";
 
 export interface IRestricao2dOpcoes {
+    nome?: string,
     pontoA?: IReadOnlyVetor2d,
     pontoB?: IReadOnlyVetor2d,
     corpoA?: Corpo2d,
@@ -49,8 +51,10 @@ export class Restricao2d {
         opcoes: IRestricao2dOpcoes = {}
     ) {
         const op = opcoes ?? {};
-        this.pontoA.set(op.pontoA);
-        this.pontoB.set(op.pontoB);
+        this.id = Mundo2d.obterProximoCorpoId();
+        this.nome = op.nome ?? `restricao${Mundo2d.obterProximoCorpoId}`;
+        this.pontoA.set(op.pontoA ?? new Vetor2d());
+        this.pontoB.set(op.pontoB ?? new Vetor2d());
         this.corpoA = op.corpoA;
         this.corpoB = op.corpoB;
         this._anguloA = this.corpoA ? this.corpoA.angulo : (op.anguloA ?? 0);

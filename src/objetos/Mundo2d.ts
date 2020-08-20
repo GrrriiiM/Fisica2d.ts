@@ -1,9 +1,11 @@
 import { Corpo2d } from "./Corpo2d";
 import { Vetor2d, IReadOnlyVetor2d } from "../geometria/Vetor2d";
-import { Construtor2d } from "../geometria/Construtor2d";
+import { Construtor2d, IConstrutorCorpo2dOpcoes } from "../geometria/Construtor2d";
 import { Area2d } from "../colisao/Area2d";
 import { Par2d } from "../colisao/Pares2d";
-import { Restricao2d } from "./Restricao2d";
+import { Restricao2d, IRestricao2dOpcoes } from "./Restricao2d";
+import { Forma2d } from "../geometria/Forma2d";
+import { Mouse2d } from "./Mouse2d";
 
 
 export interface IMundo2dOpcoes {
@@ -25,6 +27,7 @@ export class Mundo2d {
     readonly tamanhoArea: number = 48;
     readonly areas = new Array<Area2d>();
     readonly pares: { [id:string]: Par2d } = {}
+    readonly mouse = new Mouse2d();
 
     constructor(
         public largura: number,
@@ -44,15 +47,38 @@ export class Mundo2d {
         this._criarAreas(this.tamanhoArea);
     }
 
+    
+    adicionarCorpo(corpo: Corpo2d) : Corpo2d
+    adicionarCorpo(x: number, y: number, formas: Forma2d[], opcoes?: IConstrutorCorpo2dOpcoes) : Corpo2d
+    adicionarCorpo(arg1: any, arg2?: any, arg3?: any, arg4?: any) : Corpo2d {
+        if (arg1 instanceof Corpo2d) return this._adicionarCorpo1(arg1);
+        else return this._adicionarCorpo2(arg1, arg2, arg3, arg4);
+    }
 
-    adicionarCorpo(corpo: Corpo2d) : Corpo2d {
+    private _adicionarCorpo1(corpo: Corpo2d) : Corpo2d {
         this._corpos.push(corpo);
         return corpo;
     }
 
-    adicionarRestricao(restricao: Restricao2d) : Restricao2d {
+    private _adicionarCorpo2(x: number, y: number, formas: Forma2d[], opcoes?: IConstrutorCorpo2dOpcoes) : Corpo2d {
+        return this._adicionarCorpo1(Construtor2d.Corpo(x, y, formas, opcoes));
+    }
+
+
+    public adicionarRestricao(restricao: Restricao2d) : Restricao2d
+    public adicionarRestricao(opcoes: IRestricao2dOpcoes) : Restricao2d
+    public adicionarRestricao(arg1: any) : Restricao2d {
+        if (arg1 instanceof Restricao2d) return this._adicionarRestricao1(arg1);
+        else return this._adicionarRestricao2(arg1);
+    }
+
+    private _adicionarRestricao1(restricao: Restricao2d) : Restricao2d {
         this._restricoes.push(restricao);
         return restricao;
+    }
+
+    private _adicionarRestricao2(opcoes: IRestricao2dOpcoes) : Restricao2d {
+        return this._adicionarRestricao1(new Restricao2d(opcoes));
     }
 
     
@@ -83,7 +109,46 @@ export class Mundo2d {
         }
     }
 
-    
+    atualizarMouse(x: number, y: number, click1: boolean, click2: boolean) {
+        this.mouse.set(x, y);
+        
+        let restricao = this.restricoes.find(_ => _.nome == "___mouse1");
+        if (restricao) {
+            if (click1 && this.mouse.corpo) {
+                this.mouse.corpo.setDormindo(false);
+                restricao.pontoB.set(x, y);
+                return;
+            } else {
+                this._restricoes.splice(this._restricoes.indexOf(restricao));
+            }
+        }
+        for(let corpo of this.corpos) {
+            if (!corpo.estatico) {
+                for(let forma of corpo.formas) {
+                    if (forma.vertices.contem(this.mouse.posicao)) {
+                        this.mouse.corpo = corpo;
+                        if (click1) {
+                            corpo.setDormindo(false);
+                            let ponto = this.mouse.posicao.sub(this.mouse.corpo.posicao);
+                            restricao = new Restricao2d({ 
+                                nome: "___mouse1", 
+                                corpoA: this.mouse.corpo, 
+                                pontoA: ponto, 
+                                pontoB: this.mouse.posicao,
+                                tamanho: 0.01,
+                                rigidez: 0.1,
+                                rigidezAngular: 1
+                            });
+                            this._restricoes.push(restricao);
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+        
+        this.mouse.corpo = null;
+    }
 
 
 
